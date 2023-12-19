@@ -1,0 +1,2 @@
+FLASK_APP=teamz.py
+FLASK_DEBUG=1
