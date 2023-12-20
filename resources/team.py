@@ -1,28 +1,15 @@
-import fasteners
 from flask import current_app as app
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
-import json
 import logging
-from uuid import uuid4
-
-from .player import players
+from models import TeamModel, TeamsModel, PlayersModel, TeamPlayersModel
+from .db import db
 from .schemas import TeamSchema, TeamUpdateSchema, PlayerSchema
-from .schemas import serialize, string_parser
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
 
-TEAMS_FILENAME = "storage/teams.json"
 blp = Blueprint("team", __name__, description="Operations on teams.")
 logger = logging.getLogger(__name__)
-
-try:
-    with open(TEAMS_FILENAME, "r") as f:
-        teams = json.load(f, object_hook=string_parser)
-except FileNotFoundError:
-    teams = {}
-except json.decoder.JSONDecodeError as e:
-    logger.error(f"Error loading teams: {e}")
-    teams = {}
 
 
 @blp.route("/team")
@@ -30,50 +17,37 @@ class AllTeams(MethodView):
     @blp.response(200, TeamSchema(many=True))
     def get(self):
         app.logger.info("Getting all the teams...")
+        teams = TeamsModel.query.all()
         app.logger.info(f"Found {len(teams)} teams.")
-        return teams.values()
+        return teams
 
     @blp.arguments(TeamSchema)
     @blp.response(201, TeamSchema)
     def post(self, team_info):
-        team_id = str(uuid4())
-        app.logger.info(f"Creating team {team_id!r}...")
-        team = {**team_info, "id": team_id}
-        lock = fasteners.InterProcessReaderWriterLock(TEAMS_FILENAME)
-        with lock.write_lock():
-            teams[team_id] = team
-            save()
+        team = TeamsModel(**team_info)
+        try:
+            db.session.add(team)
+            db.session.commit()
+        except SQLAlchemyError as e:
+            app.logger.error(e)
+            abort(500, message=f"Error: {e}")
         app.logger.debug(f"Created team: {team}")
         return team, 201
 
 
-@blp.route("/team/<uuid:team_id>")
+@blp.route("/team/<int:team_id>")
 class Team(MethodView):
     @blp.response(200, TeamSchema)
     def get(self, team_id):
-        team_id = str(team_id)
         app.logger.info(f"Getting team {team_id!r}...")
-        try:
-            team = teams[team_id]
-        except KeyError:
-            message = f"Team {team_id!r} not found!"
-            app.logger.error(message)
-            abort(404, message=message)
-        app.logger.debug(f"Team: {team}")
+        team = TeamModel.query.get_or_404(team_id)
         return team
 
     def delete(self, team_id):
-        team_id = str(team_id)
         app.logger.info(f"Deleting team {team_id}...")
-        lock = fasteners.InterProcessReaderWriterLock(TEAMS_FILENAME)
-        with lock.write_lock():
-            try:
-                del teams[team_id]
-            except KeyError:
-                message = f"Team {team_id!r} not found!"
-                app.logger.error(message)
-                abort(404, message=message)
-            save()
+        team = TeamModel.query.get_or_404(team_id)
+        db.session.delete(team)
+        db.session.commit()
         message = f"Deleted team: {team_id!r}"
         app.logger.debug(message)
         return {"message": message}
@@ -81,43 +55,31 @@ class Team(MethodView):
     @blp.arguments(TeamUpdateSchema)
     @blp.response(200, schema=TeamSchema)
     def put(self, team_info, team_id):
-        team_id = str(team_id)
         app.logger.info(f"Updating team {team_id!r}...")
         app.logger.debug(f"Update value: {team_info}")
-        lock = fasteners.InterProcessReaderWriterLock(TEAMS_FILENAME)
-        with lock.write_lock():
-            try:
-                team = teams[team_id]
-            except KeyError:
-                message = f"Team {team_id!r} not found!"
-                app.logger.error(message)
-                abort(404, message=message)
-            team |= team_info
-            save()
+        team = TeamsModel.query.get_or_404(team_id)
+        team.name = team_info.get("name") or team.name
+        team.stadium = team_info.get("stadium") or team.stadium
+        team.city = team_info.get("city") or team.city
+        team.state = team_info.get("state") or team.state
+        team.foundation_date = team_info.get("foundation_date") or team.foundation_date
+        try:
+            db.session.add(team)
+            db.session.commit()
+        except IntegrityError as e:
+            abort(400, message=f"Error: {e}")
+        except SQLAlchemyError as e:
+            abort(500, message=f"Error: {e}")
         app.logger.debug(f"Team updated: {team}")
         return team
 
 
-@blp.route("/team/<uuid:team_id>/players")
+@blp.route("/team/<int:team_id>/players")
 class TeamPlayers(MethodView):
     @blp.response(200, PlayerSchema(many=True))
     def get(self, team_id):
-        team_id = str(team_id)
-        app.logger.info(f"Getting all players from team {team_id!r}...")
-        if not team_id in teams:
-            message = f"Team {team_id!r} not found!"
-            app.logger.debug(message)
-            abort(404, message=message)
-        team_players = {
-            player_id: player
-            for player_id, player in players.items()
-            if "team_id" in player and player["team_id"] == team_id
-        }
-        app.logger.info(f"Found {len(team_players)} players.")
-        app.logger.debug(f"Players: {team_players}")
-        return team_players.values(), 200
-
-
-def save():
-    with open(TEAMS_FILENAME, "w") as f:
-        json.dump(teams, f, indent=2, sort_keys=True, default=serialize)
+        query = PlayersModel.query.filter_by(team_id=team_id)
+        team = TeamPlayersModel.query.get_or_404(team_id)
+        team_players = team.players.all()
+        app.logger.debug(f"Players: {[player.__str__() for player in team_players]}")
+        return team_players

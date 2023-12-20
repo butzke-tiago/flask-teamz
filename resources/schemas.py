@@ -53,41 +53,41 @@ BRAZILIAN_STATES = [
 ]
 
 
-class TeamSchema(Schema):
-    id = fields.UUID(dump_only=True)
-    name = fields.Str(required=True)
-    foundation = fields.Date()
-    stadium = fields.Str()
-    city = fields.Str()
-    state = fields.Str()
-
-
 class TeamUpdateSchema(Schema):
-    id = fields.UUID(dump_only=True)
+    id = fields.Integer(dump_only=True)
     name = fields.Str()
-    foundation = fields.Date()
+    foundation_date = fields.Date()
     stadium = fields.Str()
     city = fields.Str()
     state = fields.Str(validate=OneOf(BRAZILIAN_STATES))
 
 
-class PlayerSchema(Schema):
-    id = fields.UUID(dump_only=True)
+class TeamBaseSchema(TeamUpdateSchema):
     name = fields.Str(required=True)
-    position = fields.Str(
-        required=True,
-        validate=OneOf(PLAYER_POSITIONS),
-    )
-    birth_date = fields.Date()
-    team_id = fields.UUID()
 
 
 class PlayerUpdateSchema(Schema):
-    id = fields.UUID(dump_only=True)
+    id = fields.Integer(dump_only=True)
     name = fields.Str()
     position = fields.Str(validate=OneOf(PLAYER_POSITIONS))
     birth_date = fields.Date()
-    team_id = fields.UUID()
+    team_id = fields.Integer()
+
+
+class PlayerBaseSchema(Schema):
+    id = fields.Integer(dump_only=True)
+    name = fields.Str(required=True)
+    position = fields.Str(validate=OneOf(PLAYER_POSITIONS))
+    birth_date = fields.Date()
+
+
+class PlayerSchema(PlayerBaseSchema):
+    team_id = fields.Integer(load_only=True)
+    team = fields.Nested(TeamBaseSchema(), dump_only=True)
+
+
+class TeamSchema(TeamBaseSchema):
+    players = fields.List(fields.Nested(PlayerBaseSchema()), dump_only=True)
 
 
 def serialize(obj):
