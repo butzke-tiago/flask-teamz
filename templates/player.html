@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+<table>
+    <td><a href="javascript:history.back()">Back</a></td>
+</table>
+<hr>
+<table>
+    <td>
+        <form id="player">
+            <label for="name">Name:</label><br>
+            <input type="text" id="name" name="name" value="{{ player.name }}" minlength="2" required disabled><br><br>
+            <label for="position">Position:</label><br>
+            <select name="position" id="position" disabled>
+                {% for position in positions %}
+                <option value="{{ position }}" {% if player.position==position %} selected {% endif %}>{{ position }}
+                </option>
+                {% endfor %}
+            </select><br><br>
+            <label for="team_id">Team:</label><br>
+            <select name="team_id" id="team_id" disabled>
+                {% for team in teams %}
+                <option value="{{ team.id }}" {% if player.team_id==team.id %} selected {% endif %}>{{ team.name }}
+                </option>
+                {% endfor %}
+            </select><br><br>
+            <label for="birth_date">Birth Date:</label><br>
+            <input type="date" id="birth_date" name="birth_date" value={{ player.birth_date }} min="1900-01-01"
+                max="2023-12-31" disabled /><br><br>
+        </form>
+        <form id="edit" action="{{ url_for('player.Player', player_id=player.id) }}">
+            <input type="hidden" name="edit" value="1" />
+            <input type="submit" value="Edit">
+        </form>
+    </td>
+</table>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+<table>
+    <td><a href={{ url_for("home") }}>Home</a></td>
+</table><br>
+<hr>
+<label><b>{{ message }}</b></label><br>
+
+<table id="data" class="table table-striped">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Birth Date</th>
+            <th>Position</th>
+            <th>Team</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for player in players %}
+        <tr>
+            <td><a href="{{ url_for('player.Player', player_id=player.id) }}">{{ player.name }}</a></td>
+            <td>{{ player.birth_date if player.birth_date else '' }}</td>
+            <td>{{ player.position if player.position else ''}}</td>
+            <td>{% if player.team_id %}<a href="{{ url_for('team.Team', team_id=player.team_id) }}">{{ player.team.name
+                    }}</a>{% endif %}</td>
+            <td style="text-align: right;">
+                <button
+                    onclick="sendDeleteRequest('{{ url_for('player.Player', player_id=player.id) }}')">Delete</button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function sendDeleteRequest(url) {
+        fetch(`${url}`, {
+            method: 'DELETE',
+            headers: {
+                'Accept': '*/*'
+            },
+        })
+            .then(response => {
+                if (response.ok) {
+                    // Handle successful response
+                    console.log('Delete request successful');
+                } else {
+                    // Handle error response
+                    console.error('Delete request failed');
+                }
+            })
+            .catch(error => {
+                // Handle network error
+                console.error('An error occurred:', error);
+            });
+        setTimeout(function () {
+            location.reload(true);
+        }, 100);
+    }
+</script>
+{% endblock %}

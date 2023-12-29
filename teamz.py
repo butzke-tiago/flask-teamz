@@ -1,10 +1,9 @@
-from flask import Flask
+from flask import Flask, render_template
 from flask_smorest import Api
 from resources.team import blp as TeamBlueprint
 from resources.player import blp as PlayerBlueprint
 
 from resources.db import db
-import models
 
 
 def create_app():
@@ -24,7 +23,7 @@ def create_app():
 
     @app.get("/")
     def home():
-        return "Welcome to TeamZ App!"
+        return render_template("home.html", title="TeamZ")
 
     api = Api(app)
 

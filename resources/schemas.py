@@ -90,6 +90,10 @@ class TeamSchema(TeamBaseSchema):
     players = fields.List(fields.Nested(PlayerBaseSchema()), dump_only=True)
 
 
+class EditSchema(Schema):
+    edit = fields.Int()
+
+
 def serialize(obj):
     """JSON serializer for objects not serializable by default json code"""
 

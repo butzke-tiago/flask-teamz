@@ -1,10 +1,17 @@
-from flask import current_app as app
+from flask import current_app as app, render_template
+from flask_accept import accept_fallback
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 import logging
 from models import TeamModel, TeamsModel, PlayersModel, TeamPlayersModel
 from .db import db
-from .schemas import TeamSchema, TeamUpdateSchema, PlayerSchema
+from .schemas import (
+    TeamSchema,
+    TeamUpdateSchema,
+    PlayerSchema,
+    EditSchema,
+    BRAZILIAN_STATES,
+)
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
 
@@ -12,10 +19,16 @@ blp = Blueprint("team", __name__, description="Operations on teams.")
 logger = logging.getLogger(__name__)
 
 
-@blp.route("/team")
+@blp.route("/team/")
 class AllTeams(MethodView):
-    @blp.response(200, TeamSchema(many=True))
+    @accept_fallback
     def get(self):
+        teams = TeamModel.query.all()
+        return render_template("teams.html", teams=teams, title="Teams")
+
+    @get.support("application/json")
+    @blp.response(200, TeamSchema(many=True))
+    def get_json(self):
         app.logger.info("Getting all the teams...")
         teams = TeamsModel.query.all()
         app.logger.info(f"Found {len(teams)} teams.")
@@ -37,8 +50,29 @@ class AllTeams(MethodView):
 
 @blp.route("/team/<int:team_id>")
 class Team(MethodView):
+    @accept_fallback
+    @blp.arguments(EditSchema, location="query", as_kwargs=True)
+    def get(self, team_id, **kwargs):
+        team = TeamModel.query.get_or_404(team_id)
+        app.logger.debug(f"Team: {team}")
+        if "edit" in kwargs:
+            return render_template(
+                "edit_team.html",
+                title=f"Team: {team.name}",
+                states=["Select..."] + list(BRAZILIAN_STATES),
+                team=team,
+            )
+        else:
+            return render_template(
+                "team.html",
+                title=f"Team: {team.name}",
+                states=["Select..."] + list(BRAZILIAN_STATES),
+                team=team,
+            )
+
+    @get.support("application/json")
     @blp.response(200, TeamSchema)
-    def get(self, team_id):
+    def get_json(self, team_id):
         app.logger.info(f"Getting team {team_id!r}...")
         team = TeamModel.query.get_or_404(team_id)
         return team
@@ -58,11 +92,16 @@ class Team(MethodView):
         app.logger.info(f"Updating team {team_id!r}...")
         app.logger.debug(f"Update value: {team_info}")
         team = TeamsModel.query.get_or_404(team_id)
-        team.name = team_info.get("name") or team.name
-        team.stadium = team_info.get("stadium") or team.stadium
-        team.city = team_info.get("city") or team.city
-        team.state = team_info.get("state") or team.state
-        team.foundation_date = team_info.get("foundation_date") or team.foundation_date
+        if "name" in team_info:
+            team.name = team_info["name"]
+        if "stadium" in team_info:
+            team.stadium = team_info["stadium"]
+        if "city" in team_info:
+            team.city = team_info["city"]
+        if "state" in team_info:
+            team.state = team_info["state"]
+        if "foundation_date" in team_info:
+            team.foundation_date = team_info["foundation_date"]
         try:
             db.session.add(team)
             db.session.commit()

@@ -1,24 +1,30 @@
-from flask import current_app as app
+from flask import current_app as app, render_template
+from flask_accept import accept_fallback
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 import logging
 
 from .db import db
-from models import PlayerModel, PlayersModel
+from models import PlayerModel, PlayersModel, TeamsModel
 from sqlalchemy.exc import SQLAlchemyError
 
-from .schemas import PlayerSchema, PlayerUpdateSchema
+from .schemas import PlayerSchema, PlayerUpdateSchema, EditSchema, PLAYER_POSITIONS
 
 
-PLAYERS_FILENAME = "storage/players.json"
 blp = Blueprint("player", __name__, description="Operations on players.")
 logger = logging.getLogger(__name__)
 
 
-@blp.route("/player")
+@blp.route("/player/")
 class AllPlayers(MethodView):
-    @blp.response(200, PlayerUpdateSchema(many=True))
+    @accept_fallback
     def get(self):
+        players = PlayerModel.query.all()
+        return render_template("players.html", players=players, title="Players")
+
+    @get.support("application/json")
+    @blp.response(200, PlayerUpdateSchema(many=True))
+    def get_json(self):
         app.logger.info("Getting all the players...")
         players = PlayersModel.query.all()
         app.logger.info(f"Found {len(players)} players.")
@@ -40,8 +46,32 @@ class AllPlayers(MethodView):
 
 @blp.route("/player/<int:player_id>")
 class Player(MethodView):
+    @accept_fallback
+    @blp.arguments(EditSchema, location="query", as_kwargs=True)
+    def get(self, player_id, **kwargs):
+        player = PlayerModel.query.get_or_404(player_id)
+        teams = TeamsModel.query.all()
+        app.logger.debug(f"Player: {player}")
+        if "edit" in kwargs:
+            return render_template(
+                "edit_player.html",
+                title=f"Player: {player.name}",
+                positions=["Select..."] + list(PLAYER_POSITIONS),
+                teams=[TeamsModel(id=None, name="Select...")] + teams,
+                player=player,
+            )
+        else:
+            return render_template(
+                "player.html",
+                title=f"Player: {player.name}",
+                positions=["Select..."] + list(PLAYER_POSITIONS),
+                teams=[TeamsModel(id=None, name="Select...")] + teams,
+                player=player,
+            )
+
+    @get.support("application/json")
     @blp.response(200, PlayerSchema)
-    def get(self, player_id):
+    def get_json(self, player_id):
         app.logger.info(f"Getting player {player_id!r}...")
         player = PlayerModel.query.get_or_404(player_id)
         app.logger.debug(f"Player: {player}")
@@ -62,10 +92,14 @@ class Player(MethodView):
         app.logger.info(f"Updating player {player_id!r}...")
         app.logger.debug(f"Update value: {player_info}")
         player = PlayerModel.query.get_or_404(player_id)
-        player.name = player_info.get("name") or player.name
-        player.birth_date = player_info.get("birth_date") or player.birth_date
-        player.position = player_info.get("position") or player.position
-        player.team_id = player_info.get("team_id") or player.team_id
+        if "name" in player_info:
+            player.name = player_info["name"]
+        if "birth_date" in player_info:
+            player.birth_date = player_info["birth_date"]
+        if "position" in player_info:
+            player.position = player_info["position"]
+        if "team_id" in player_info:
+            player.team_id = player_info["team_id"]
         try:
             db.session.add(player)
             db.session.commit()

@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block content %}
+<table>
+    <td><a href="javascript:history.back()">Back</a></td>
+</table>
+<hr>
+<table>
+    <td>
+        <form id="team">
+            <label for="name">Name:</label><br>
+            <input type="text" id="name" name="name" value="{{ team.name }}" minlength="2" required><br><br>
+            <label for="stadium">Stadium:</label><br>
+            <input type="text" id="stadium" name="stadium" value="{{ team.stadium  or ''}}" minlength="2">
+            <br><br>
+            <label for="city">City:</label><br>
+            <input type="text" id="city" name="city" value="{{ team.city or ''}}" minlength="2"><br><br>
+            <label for="state">State:</label><br>
+            <select name="state" id="state">
+                {% for state in states %}
+                <option value="{{ state }}" {% if team.state==state %} selected {% endif %}>{{ state }}
+                </option>
+                {% endfor %}
+            </select><br><br>
+            <label for="foundation_date">Foundation Date:</label><br>
+            <input type="date" id="foundation_date" name="foundation_date" value={{ team.foundation_date }}
+                min="1800-01-01" max="2023-12-31" /><br><br>
+            <input type="submit" value="Update">
+        </form>
+    </td>
+    <td style="vertical-align: top;">
+        <table id="players" class="table table-striped">
+            <thead>
+                <tr>
+                    <th colspan="4" style="text-align: center;">Players</th>
+                </tr>
+                <tr>
+                    <th>Name</th>
+                    <th>Birth Date</th>
+                    <th>Position</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for player in team.players %}
+                <tr>
+                    <td><a href="{{ url_for('player.Player', player_id=player.id) }}">{{ player.name }}</a></td>
+                    <td>{{ player.birth_date }}</td>
+                    <td>{{ player.position }}</td>
+                    <td>
+                        <button
+                            onclick="sendDeleteRequest('{{ url_for('player.Player', player_id=player.id) }}')">Delete</button>
+                    </td>
+                </tr>
+                {% endfor %}
+
+            </tbody>
+        </table>
+    </td>
+</table>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function sendDeleteRequest(url) {
+        fetch(`${url}`, {
+            method: 'DELETE',
+            headers: {
+                'Accept': '*/*'
+            },
+            // Optionally, you can provide a request body if required by the API
+            // body: JSON.stringify({ id: 123 })
+        })
+            .then(response => {
+                if (response.ok) {
+                    // Handle successful response
+                    console.log('Delete request successful');
+                } else {
+                    // Handle error response
+                    console.error('Delete request failed');
+                }
+            })
+            .catch(error => {
+                // Handle network error
+                console.error('An error occurred:', error);
+            });
+        setTimeout(function () {
+            location.reload()
+        }, 100);
+    }
+</script>
+<script>
+    document.getElementById('team').addEventListener('submit', function (event) {
+        event.preventDefault(); // Prevent default form submission
+
+        var formData = new FormData(this);
+        var xhr = new XMLHttpRequest();
+
+        xhr.open('PUT', '{{ url_for('team.Team', team_id=team.id) }}', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                console.log('PUT request successful');
+            } else {
+                console.error('PUT request failed');
+            }
+        };
+
+        xhr.send(JSON.stringify(Object.fromEntries(formData.entries())));
+        console.log(JSON.stringify(Object.fromEntries(formData.entries())));
+        setTimeout(function () {
+            history.back()
+        }, 100);
+    });
+</script>
+{% endblock %}

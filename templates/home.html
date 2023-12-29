@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+
+{% block content %}
+<label><b>{{ message }}</b></label><br>
+<td><a href={{ url_for("team.AllTeams") }}>View Teams</a></td><br>
+<td><a href={{ url_for("player.AllPlayers") }}>View Players</a></td><br>
+{% endblock %}

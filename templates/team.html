@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block content %}
+<table>
+    <td><a href="javascript:history.back()">Back</a></td>
+</table>
+<hr>
+<table>
+    <td>
+        <form id="team">
+            <label for="name">Name:</label><br>
+            <input type="text" id="name" name="name" value="{{ team.name }}" minlength="2" required disabled><br><br>
+            <label for="stadium">Stadium:</label><br>
+            <input type="text" id="stadium" name="stadium" value="{{ team.stadium  or ''}}" minlength="2" disabled>
+            <br><br>
+            <label for="city">City:</label><br>
+            <input type="text" id="city" name="city" value="{{ team.city or ''}}" minlength="2" disabled><br><br>
+            <label for="state">State:</label><br>
+            <select name="state" id="state" disabled>
+                {% for state in states %}
+                <option value="{{ state }}" {% if team.state==state %} selected {% endif %}>{{ state }}
+                </option>
+                {% endfor %}
+            </select><br><br>
+            <label for="foundation_date">Foundation Date:</label><br>
+            <input type="date" id="foundation_date" name="foundation_date" value={{ team.foundation_date }}
+                min="1800-01-01" max="2023-12-31" disabled /><br><br>
+        </form>
+        <form id="edit" action="{{ url_for('team.Team', team_id=team.id) }}">
+            <input type="hidden" name="edit" value="1" />
+            <input type="submit" value="Edit">
+        </form>
+    </td>
+    <td style="vertical-align:top">
+        <table id="players" class="table table-striped">
+            <thead>
+                <tr>
+                    <th colspan="4" style="text-align: center;">Players</th>
+                </tr>
+                <tr>
+                    <th>Name</th>
+                    <th>Birth Date</th>
+                    <th>Position</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for player in team.players %}
+                <tr>
+                    <td><a href="{{ url_for('player.Player', player_id=player.id) }}">{{ player.name }}</a></td>
+                    <td>{{ player.birth_date }}</td>
+                    <td>{{ player.position }}</td>
+                    <td style="text-align: right;">
+                        <button onclick="sendDeleteRequest('{{ url_for('player.Player', player_id=player.id) }}')"
+                            disabled>Delete</button>
+                    </td>
+                </tr>
+                {% endfor %}
+
+            </tbody>
+        </table>
+    </td>
+</table>
+{% endblock %}
