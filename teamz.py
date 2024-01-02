@@ -2,12 +2,16 @@ from flask import Flask, render_template
 from flask_smorest import Api
 from resources.team import blp as TeamBlueprint
 from resources.player import blp as PlayerBlueprint
+import logging
 
 from resources.db import db
 
 
 def create_app():
     app = Flask(__name__)
+    gunicorn_logger = logging.getLogger("gunicorn.error")
+    app.logger.handlers = gunicorn_logger.handlers
+    app.logger.setLevel(gunicorn_logger.level)
 
     app.config["API_TITLE"] = "TeamZ API"
     app.config["API_VERSION"] = "1.0"
