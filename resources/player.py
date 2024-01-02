@@ -30,9 +30,45 @@ class AllPlayers(MethodView):
         app.logger.info(f"Found {len(players)} players.")
         return players
 
+    @accept_fallback
+    @blp.arguments(PlayerSchema, location="form")
+    def post(self, player_info):
+        app.logger.debug(player_info)
+        player = PlayerModel(**player_info)
+        try:
+            db.session.add(player)
+            db.session.commit()
+        except SQLAlchemyError as e:
+            app.logger.error(e)
+            teams = TeamsModel.query.all()
+            return (
+                render_template(
+                    "create_player.html",
+                    title="Create your Player",
+                    message=f"{e}",
+                    positions=[""] + list(PLAYER_POSITIONS),
+                    teams=[TeamsModel(id=None, name="")] + teams,
+                    player=player,
+                ),
+                500,
+            )
+        app.logger.debug(f"Created player: {player}")
+        players = PlayerModel.query.all()
+
+        return (
+            render_template(
+                "players.html",
+                players=players,
+                title="Players",
+                message=f"Player {player.name!r} created!",
+            ),
+            201,
+        )
+
+    @post.support("application/json")
     @blp.arguments(PlayerSchema)
     @blp.response(201, PlayerSchema)
-    def post(self, player_info):
+    def post_json(self, player_info):
         player = PlayerModel(**player_info)
         try:
             db.session.add(player)
@@ -56,16 +92,16 @@ class Player(MethodView):
             return render_template(
                 "edit_player.html",
                 title=f"Player: {player.name}",
-                positions=["Select..."] + list(PLAYER_POSITIONS),
-                teams=[TeamsModel(id=None, name="Select...")] + teams,
+                positions=[""] + list(PLAYER_POSITIONS),
+                teams=[TeamsModel(id=None, name="")] + teams,
                 player=player,
             )
         else:
             return render_template(
                 "player.html",
                 title=f"Player: {player.name}",
-                positions=["Select..."] + list(PLAYER_POSITIONS),
-                teams=[TeamsModel(id=None, name="Select...")] + teams,
+                positions=[""] + list(PLAYER_POSITIONS),
+                teams=[TeamsModel(id=None, name="")] + teams,
                 player=player,
             )
 
@@ -107,3 +143,17 @@ class Player(MethodView):
             abort(500, message=f"Error: {e}")
         app.logger.debug(f"Player updated: {player}")
         return player
+
+
+@blp.route("/player/create")
+class CreatePlayer(MethodView):
+    @accept_fallback
+    def get(self):
+        teams = TeamsModel.query.all()
+        return render_template(
+            "create_player.html",
+            title="New Player",
+            positions=[""] + list(PLAYER_POSITIONS),
+            teams=[TeamsModel(id=None, name="")] + teams,
+            player=PlayerModel(),
+        )

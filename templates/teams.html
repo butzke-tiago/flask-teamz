@@ -2,10 +2,13 @@
 
 {% block content %}
 <table>
-    <td><a href={{ url_for("home") }}>Home</a></td>
+    <tr>
+        <td><a href={{ url_for("home") }}>Home</a></td>
+        <td><a href={{ url_for("team.CreateTeam") }}>Create a Team</a></td><br>
+    </tr>
 </table>
 <hr>
-<label><b>{{ message }}</b></label><br>
+{% if message %}<b>{{ message }}</b><br> {% endif %}
 
 <table id="data" class="table table-striped">
     <thead>
@@ -14,13 +17,14 @@
             <th>Foundation Date</th>
             <th>Stadium</th>
             <th>Location</th>
+            <th></th>
         </tr>
     </thead>
     <tbody>
         {% for team in teams %}
         <tr>
             <td><a href="{{ url_for('team.Team', team_id=team.id) }}">{{ team.name }}</a></td>
-            <td>{{ team.foundation_date }}</td>
+            <td>{{ team.foundation_date or ''}}</td>
             <td>{{ team.stadium or ''}}</td>
             <td>{{ team.city or ''}}{% if team.state and team.city %}, {% endif %}{{ team.state or ''}}</td>
             <td>
@@ -49,15 +53,16 @@
                 } else {
                     // Handle error response
                     console.error('Delete request failed');
+                    alert("Failed to delete team.")
                 }
             })
             .catch(error => {
                 // Handle network error
                 console.error('An error occurred:', error);
+            })
+            .finally(() => {
+                location.href = "{{ url_for('team.AllTeams') }}";
             });
-        setTimeout(function () {
-            location.reload(true);
-        }, 100);
     }
 </script>
 {% endblock %}

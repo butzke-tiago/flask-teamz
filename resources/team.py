@@ -34,9 +34,54 @@ class AllTeams(MethodView):
         app.logger.info(f"Found {len(teams)} teams.")
         return teams
 
+    @accept_fallback
+    @blp.arguments(TeamSchema, location="form")
+    def post(self, team_info):
+        app.logger.debug(team_info)
+        team = TeamModel(**team_info)
+        try:
+            db.session.add(team)
+            db.session.commit()
+        except IntegrityError as e:
+            app.logger.error(e)
+            return (
+                render_template(
+                    "create_team.html",
+                    title="Create your Team",
+                    states=[""] + list(BRAZILIAN_STATES),
+                    message=f"Team already exists!",
+                    team=team,
+                ),
+                201,
+            )
+        except SQLAlchemyError as e:
+            app.logger.error(e)
+            return (
+                render_template(
+                    "create_team.html",
+                    title="Create your Team",
+                    message=f"{e}",
+                    states=[""] + list(BRAZILIAN_STATES),
+                ),
+                500,
+            )
+        app.logger.debug(f"Created team: {team}")
+        teams = TeamModel.query.all()
+
+        return (
+            render_template(
+                "teams.html",
+                teams=teams,
+                title="Teams",
+                message=f"Team {team.name!r} created!",
+            ),
+            201,
+        )
+
+    @post.support("application/json")
     @blp.arguments(TeamSchema)
     @blp.response(201, TeamSchema)
-    def post(self, team_info):
+    def post_json(self, team_info):
         team = TeamsModel(**team_info)
         try:
             db.session.add(team)
@@ -59,14 +104,14 @@ class Team(MethodView):
             return render_template(
                 "edit_team.html",
                 title=f"Team: {team.name}",
-                states=["Select..."] + list(BRAZILIAN_STATES),
+                states=[""] + list(BRAZILIAN_STATES),
                 team=team,
             )
         else:
             return render_template(
                 "team.html",
                 title=f"Team: {team.name}",
-                states=["Select..."] + list(BRAZILIAN_STATES),
+                states=[""] + list(BRAZILIAN_STATES),
                 team=team,
             )
 
@@ -122,3 +167,15 @@ class TeamPlayers(MethodView):
         team_players = team.players.all()
         app.logger.debug(f"Players: {[player.__str__() for player in team_players]}")
         return team_players
+
+
+@blp.route("/team/create")
+class CreateTeam(MethodView):
+    @accept_fallback
+    def get(self):
+        return render_template(
+            "create_team.html",
+            title="Create your Team",
+            states=[""] + list(BRAZILIAN_STATES),
+            team=TeamModel(),
+        )

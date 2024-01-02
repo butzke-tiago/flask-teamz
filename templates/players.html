@@ -3,9 +3,10 @@
 {% block content %}
 <table>
     <td><a href={{ url_for("home") }}>Home</a></td>
-</table><br>
+    <td><a href={{ url_for("player.CreatePlayer") }}>Create a Player</a></td><br>
+</table>
 <hr>
-<label><b>{{ message }}</b></label><br>
+{% if message %}<b>{{ message }}</b><br> {% endif %}
 
 <table id="data" class="table table-striped">
     <thead>
@@ -51,15 +52,16 @@
                 } else {
                     // Handle error response
                     console.error('Delete request failed');
+                    alert("Failed to delete player.")
                 }
             })
             .catch(error => {
                 // Handle network error
                 console.error('An error occurred:', error);
+            })
+            .finally(() => {
+                location.href = "{{ url_for('player.AllPlayers') }}";
             });
-        setTimeout(function () {
-            location.reload(true);
-        }, 100);
     }
 </script>
 {% endblock %}

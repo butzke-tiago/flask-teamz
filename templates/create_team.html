@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<table>
+    <td><a href="javascript:history.back()">Back</a></td>
+</table>
+<hr>
+{% if message %}<b>{{ message }}</b><br> {% endif %}
+<table>
+    <form name="team" method="post" action="/team" onsubmit="return validateForm()" enctype="multipart/form-data">
+        <label for="name">Name:</label><br>
+        <input type="text" id="name" name="name" {% if team.name %} value="{{ team.name }}" {% endif %} minlength="2"
+            required><br><br>
+        <label for="stadium">Stadium:</label><br>
+        <input type="text" id="stadium" name="stadium" {% if team.stadium %} value="{{ team.stadium }}" {% endif %}
+            minlength="2">
+        <br><br>
+        <label for="city">City:</label><br>
+        <input type="text" id="city" name="city" {% if team.city %} value="{{ team.city }}" {% endif %}
+            minlength="2"><br><br>
+        <label for="state">State:</label><br>
+        <select name="state" id="state">
+            {% for state in states %}
+            <option value="{{ state }}" {% if team.state==state %} selected {% endif %}>{{ state }}
+            </option>
+            {% endfor %}
+        </select><br><br>
+        <label for="foundation_date">Foundation Date:</label>
+        <input type="date" id="foundation_date" name="foundation_date" {% if team.foundation_date %}
+            value="{{ team.foundation_date }}" {% endif %} min="1800-01-01" max="2023-12-31" /><br><br>
+        <input type="submit" value="Create">
+    </form>
+</table>
+{% endblock %}
+{% block scripts %}
+<script>
+    function validateForm() {
+        for (let input of document.forms["team"]) {
+            console.log(input)
+            if (input.value == "") {
+                input.disabled = true;
+            }
+        }
+    }
+</script>
+{% endblock %}

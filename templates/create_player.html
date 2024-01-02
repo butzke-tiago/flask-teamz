@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+<table>
+    <td><a href="javascript:history.back()">Back</a></td>
+</table>
+<hr>
+{% if message %}<b>{{ message }}</b><br> {% endif %}
+<table>
+    <form name="player" method="post" action="/player" onsubmit="return validateForm()" enctype="multipart/form-data">
+        <label for="name">Name:</label><br>
+        <input type="text" id="name" name="name" {% if player.name %} value="{{ player.name }}" {% endif %}
+            minlength="2" required><br><br>
+        <label for="position">Position:</label><br>
+        <select name="position" id="position">
+            {% for position in positions %}
+            <option value="{{ position }}" {% if player.position==position %} selected {% endif %}>{{ position }}
+            </option>
+            {% endfor %}
+        </select><br><br>
+        <label for="team_id">Team:</label><br>
+        <select name="team_id" id="team_id">
+            {% for team in teams %}
+            <option value="{{ team.id }}" {% if player.team_id==team.id %} selected {% endif %}>{{ team.name }}</option>
+            {% endfor %}
+        </select><br><br>
+        <label for="birth_date">Birth Date:</label>
+        <input type="date" id="birth_date" name="birth_date" {% if player.birth_date %} value="{{ player.birth_date }}"
+            {% endif %} min="1900-01-01" max="2006-12-31" /><br><br>
+        <input type="submit" value="Create">
+    </form>
+</table>
+{% endblock %}
+{% block scripts %}
+<script>
+    function validateForm() {
+        for (let input of document.forms["player"]) {
+            console.log(input)
+            if (input.value == "" || input.value == "None") {
+                input.disabled = true;
+            }
+        }
+    }
+</script>
+{% endblock %}

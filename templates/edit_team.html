@@ -83,10 +83,10 @@
             .catch(error => {
                 // Handle network error
                 console.error('An error occurred:', error);
+            })
+            .finally(() => {
+                location.reload()
             });
-        setTimeout(function () {
-            location.reload()
-        }, 100);
     }
 </script>
 <script>
@@ -100,18 +100,19 @@
         xhr.setRequestHeader('Content-Type', 'application/json');
 
         xhr.onreadystatechange = function () {
-            if (xhr.readyState === 4 && xhr.status === 200) {
-                console.log('PUT request successful');
-            } else {
-                console.error('PUT request failed');
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    console.log('PUT request successful');
+                    history.back();
+                } else {
+                    console.error('PUT request failed');
+                    alert("Failed to update!");
+                }
             }
         };
 
         xhr.send(JSON.stringify(Object.fromEntries(formData.entries())));
         console.log(JSON.stringify(Object.fromEntries(formData.entries())));
-        setTimeout(function () {
-            history.back()
-        }, 100);
     });
 </script>
 {% endblock %}
