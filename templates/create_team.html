@@ -7,7 +7,8 @@
 <hr>
 {% if message %}<b>{{ message }}</b><br> {% endif %}
 <table>
-    <form name="team" method="post" action="/team" onsubmit="return validateForm()" enctype="multipart/form-data">
+    <form name="team" method="post" action="{{ url_for('team.AllTeams') }}" onsubmit="return validateForm()"
+        enctype="multipart/form-data">
         <label for="name">Name:</label><br>
         <input type="text" id="name" name="name" {% if team.name %} value="{{ team.name }}" {% endif %} minlength="2"
             required><br><br>
