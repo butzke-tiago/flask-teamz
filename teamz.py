@@ -2,8 +2,7 @@ from flask import Flask, render_template
 from flask_smorest import Api
 from resources.team import blp as TeamBlueprint
 from resources.player import blp as PlayerBlueprint
-import logging
-
+from flask_migrate import Migrate, upgrade
 from resources.db import db
 
 
@@ -24,6 +23,7 @@ def create_app():
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///data.db"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     db.init_app(app)
+    migrate = Migrate(app, db)
 
     @app.get("/")
     def home():
@@ -32,7 +32,7 @@ def create_app():
     api = Api(app)
 
     with app.app_context():
-        db.create_all()
+        upgrade()
 
     api.register_blueprint(TeamBlueprint)
     api.register_blueprint(PlayerBlueprint)

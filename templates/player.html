@@ -8,7 +8,7 @@
 <hr>
 <table>
     <td>
-        <img height="312" src="{{ player.portrait }}">
+        <img height="312" src="{{ player.portrait or url_for('static', filename='player.png') }}">
     </td>
     <td width="20"></td>
     <td style="vertical-align: top;">

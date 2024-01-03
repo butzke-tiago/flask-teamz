@@ -22,7 +22,7 @@
     <tbody>
         {% for player in players %}
         <tr>
-            <td><img height="32" src="{{ player.portrait }}">
+            <td><img height="32" src="{{ player.portrait or url_for('static', filename='player.png') }}">
             </td>
             <td><a href="{{ url_for('player.Player', player_id=player.id) }}">{{ player.name }}</a></td>
             <td>{{ player.birth_date if player.birth_date else '' }}</td>

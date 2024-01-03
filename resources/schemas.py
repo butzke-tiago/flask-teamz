@@ -83,6 +83,7 @@ class PlayerBaseSchema(Schema):
     name = fields.Str(required=True)
     position = fields.Str(validate=OneOf(PLAYER_POSITIONS))
     birth_date = fields.Date()
+    portrait = fields.Url(allow_none=True)
 
 
 class PlayerSchema(PlayerBaseSchema):

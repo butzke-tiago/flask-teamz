@@ -24,7 +24,7 @@
     <tbody>
         {% for team in teams %}
         <tr>
-            <td><img height="32" src="{{ team.logo }}">
+            <td><img height="32" src="{{ team.logo or url_for('static', filename='team.png') }}">
             </td>
             <td><a href="{{ url_for('team.Team', team_id=team.id) }}">{{ team.name }}</a></td>
             <td>{{ team.foundation_date or ''}}</td>

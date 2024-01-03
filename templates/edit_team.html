@@ -8,7 +8,7 @@
 <table>
     <td>
         <div id="image">
-            <img height="312" src="{{ team.logo }}">
+            <img height="312" src="{{ team.logo or url_for('static', filename='team.png') }}">
         </div>
     </td>
     <td width="20"></td>

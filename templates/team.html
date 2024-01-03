@@ -8,7 +8,7 @@
 <hr>
 <table>
     <td>
-        <img height="312" src="{{ team.logo }}">
+        <img height="312" src="{{ team.logo or url_for('static', filename='team.png') }}">
     </td>
     <td width="20"></td>
     <td>
@@ -54,7 +54,7 @@
             <tbody>
                 {% for player in team.players %}
                 <tr>
-                    <td><img height="32" src="{{ player.portrait }}">
+                    <td><img height="32" src="{{ player.portrait or url_for('static', filename='player.png') }}">
                     </td>
                     <td><a href="{{ url_for('player.Player', player_id=player.id) }}">{{ player.name }}</a></td>
                     <td>{{ player.birth_date }}</td>
