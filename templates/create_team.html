@@ -3,6 +3,7 @@
 {% block content %}
 <table>
     <td><a href="javascript:history.back()">Back</a></td>
+    <td><a href={{ url_for("team.AllTeams") }}>Teams</a></td><br>
 </table>
 <hr>
 {% if message %}<b>{{ message }}</b><br> {% endif %}

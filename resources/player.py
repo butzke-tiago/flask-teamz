@@ -12,14 +12,16 @@ from .schemas import PlayerSchema, PlayerUpdateSchema, EditSchema, PLAYER_POSITI
 
 
 blp = Blueprint("player", __name__, description="Operations on players.")
-logger = logging.getLogger(__name__)
+NO_TEAM = TeamsModel(id=0, name="")
 
 
 @blp.route("/player/")
 class AllPlayers(MethodView):
     @accept_fallback
     def get(self):
+        app.logger.info("Getting all the players...")
         players = PlayerModel.query.all()
+        app.logger.info(f"Found {len(players)} players.")
         return render_template("players.html", players=players, title="Players")
 
     @get.support("application/json")
@@ -35,6 +37,8 @@ class AllPlayers(MethodView):
     def post(self, player_info):
         app.logger.debug(player_info)
         player = PlayerModel(**player_info)
+        if player.team_id == 0:
+            player.team_id = None
         try:
             db.session.add(player)
             db.session.commit()
@@ -46,8 +50,8 @@ class AllPlayers(MethodView):
                     "create_player.html",
                     title="Create your Player",
                     message=f"{e}",
-                    positions=[""] + list(PLAYER_POSITIONS),
-                    teams=[TeamsModel(id=None, name="")] + teams,
+                    positions=PLAYER_POSITIONS,
+                    teams=[NO_TEAM] + teams,
                     player=player,
                 ),
                 500,
@@ -92,16 +96,16 @@ class Player(MethodView):
             return render_template(
                 "edit_player.html",
                 title=f"Player: {player.name}",
-                positions=[""] + list(PLAYER_POSITIONS),
-                teams=[TeamsModel(id=None, name="")] + teams,
+                positions=PLAYER_POSITIONS,
+                teams=[NO_TEAM] + teams,
                 player=player,
             )
         else:
             return render_template(
                 "player.html",
                 title=f"Player: {player.name}",
-                positions=[""] + list(PLAYER_POSITIONS),
-                teams=[TeamsModel(id=None, name="")] + teams,
+                positions=PLAYER_POSITIONS,
+                teams=[NO_TEAM] + teams,
                 player=player,
             )
 
@@ -135,7 +139,7 @@ class Player(MethodView):
         if "position" in player_info:
             player.position = player_info["position"]
         if "team_id" in player_info:
-            player.team_id = player_info["team_id"]
+            player.team_id = player_info["team_id"] or None
         try:
             db.session.add(player)
             db.session.commit()
@@ -153,7 +157,7 @@ class CreatePlayer(MethodView):
         return render_template(
             "create_player.html",
             title="New Player",
-            positions=[""] + list(PLAYER_POSITIONS),
-            teams=[TeamsModel(id=None, name="")] + teams,
+            positions=PLAYER_POSITIONS,
+            teams=[NO_TEAM] + teams,
             player=PlayerModel(),
         )

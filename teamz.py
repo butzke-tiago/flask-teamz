@@ -9,9 +9,9 @@ from resources.db import db
 
 def create_app():
     app = Flask(__name__)
-    gunicorn_logger = logging.getLogger("gunicorn.error")
-    app.logger.handlers = gunicorn_logger.handlers
-    app.logger.setLevel(gunicorn_logger.level)
+    # gunicorn_logger = logging.getLogger("gunicorn.error")
+    # app.logger.handlers = gunicorn_logger.handlers
+    # app.logger.setLevel(gunicorn_logger.level)
 
     app.config["API_TITLE"] = "TeamZ API"
     app.config["API_VERSION"] = "1.0"

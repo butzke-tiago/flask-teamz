@@ -2,7 +2,6 @@ from flask import current_app as app, render_template
 from flask_accept import accept_fallback
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
-import logging
 from models import TeamModel, TeamsModel, PlayersModel, TeamPlayersModel
 from .db import db
 from .schemas import (
@@ -16,14 +15,15 @@ from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
 
 blp = Blueprint("team", __name__, description="Operations on teams.")
-logger = logging.getLogger(__name__)
 
 
 @blp.route("/team/")
 class AllTeams(MethodView):
     @accept_fallback
     def get(self):
+        app.logger.info("Getting all the teams...")
         teams = TeamModel.query.all()
+        app.logger.info(f"Found {len(teams)} teams.")
         return render_template("teams.html", teams=teams, title="Teams")
 
     @get.support("application/json")
@@ -48,7 +48,7 @@ class AllTeams(MethodView):
                 render_template(
                     "create_team.html",
                     title="Create your Team",
-                    states=[""] + list(BRAZILIAN_STATES),
+                    states=BRAZILIAN_STATES,
                     message=f"Team already exists!",
                     team=team,
                 ),
@@ -61,7 +61,7 @@ class AllTeams(MethodView):
                     "create_team.html",
                     title="Create your Team",
                     message=f"{e}",
-                    states=[""] + list(BRAZILIAN_STATES),
+                    states=BRAZILIAN_STATES,
                 ),
                 500,
             )
@@ -104,14 +104,14 @@ class Team(MethodView):
             return render_template(
                 "edit_team.html",
                 title=f"Team: {team.name}",
-                states=[""] + list(BRAZILIAN_STATES),
+                states=BRAZILIAN_STATES,
                 team=team,
             )
         else:
             return render_template(
                 "team.html",
                 title=f"Team: {team.name}",
-                states=[""] + list(BRAZILIAN_STATES),
+                states=BRAZILIAN_STATES,
                 team=team,
             )
 
@@ -176,6 +176,6 @@ class CreateTeam(MethodView):
         return render_template(
             "create_team.html",
             title="Create your Team",
-            states=[""] + list(BRAZILIAN_STATES),
-            team=TeamModel(),
+            states=BRAZILIAN_STATES,
+            team=TeamModel(id=0),
         )

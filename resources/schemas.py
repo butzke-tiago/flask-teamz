@@ -4,6 +4,7 @@ from datetime import date, datetime
 from uuid import UUID
 
 PLAYER_POSITIONS = [
+    "",
     "GK",
     "SW",
     "CB",
@@ -23,6 +24,7 @@ PLAYER_POSITIONS = [
 ]
 
 BRAZILIAN_STATES = [
+    "",
     "AC",
     "AL",
     "AP",
