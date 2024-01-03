@@ -7,26 +7,35 @@
 <hr>
 <table>
     <td>
+        <div id="image">
+            <img height="312" src="{{ player.portrait }}">
+        </div>
+    </td>
+    <td width="20"></td>
+    <td>
         <form id="player" onsubmit="return sendUpdateRequest()">
             <label for="name">Name:</label><br>
-            <input type="text" id="name" name="name" value="{{ player.name }}" minlength="2" required><br><br>
+            <input type="text" id="name" name="name" value="{{ player.name }}" minlength="2" required><br>
             <label for="position">Position:</label><br>
             <select name="position" id="position">
                 {% for position in positions %}
                 <option value="{{ position }}" {% if player.position==position %} selected {% endif %}>{{ position }}
                 </option>
                 {% endfor %}
-            </select><br><br>
+            </select><br>
             <label for="team_id">Team:</label><br>
             <select name="team_id" id="team_id">
                 {% for team in teams %}
                 <option value="{{ team.id }}" {% if player.team_id==team.id %} selected {% endif %}>{{ team.name }}
                 </option>
                 {% endfor %}
-            </select><br><br>
+            </select><br>
             <label for="birth_date">Birth Date:</label><br>
             <input type="date" id="birth_date" name="birth_date" value={{ player.birth_date }} min="1900-01-01"
-                max="2023-12-31" /><br><br>
+                max="2023-12-31" /><br>
+            <label for="portrait">Portrait:</label><br>
+            <input type="text" id="portrait" name="portrait" value="{{ player.portrait or '' }}" oninput="getImg()"><br>
+            <br>
             <input type="submit" value="Update">
         </form>
     </td>
@@ -46,13 +55,20 @@
         if (document.forms["player"]["birth_date"].value == "" && "{{ player.birth_date }}" == "None") {
             document.forms["player"]["birth_date"].disabled = true;
         }
+        json = Object.fromEntries(new FormData(document.forms["player"]).entries());
+        if (json.portrait == "") {
+            json.portrait = null;
+        }
+        if (json.birth_date == "") {
+            json.birth_date = null;
+        }
         fetch("{{ url_for('player.Player', player_id=player.id) }}", {
             method: 'PUT',
             headers: {
                 'Accept': '*/*',
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(Object.fromEntries(new FormData(document.forms["player"]).entries()))
+            body: JSON.stringify(json)
         })
             .then(response => {
                 if (response.ok) {
@@ -72,6 +88,19 @@
             .finally(() => {
                 location.href = "{{ url_for('player.Player',player_id=player.id) }}";
             });
+        return false;
+    }
+    function getImg() {
+        var url = document.getElementById('portrait').value;
+        var div = document.createElement('div');
+        div.className = "imageWrapper";
+        var img = document.createElement('img');
+        img.src = url;
+        img.height = 312
+        div.appendChild(img);
+        while (document.getElementById('image').firstChild)
+            document.getElementById('image').removeChild(document.getElementById('image').firstChild);
+        document.getElementById('image').appendChild(div);
         return false;
     }
 </script>

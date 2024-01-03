@@ -12,6 +12,7 @@ class TeamsModel(db.Model):
     city = db.Column(db.String)
     state = db.Column(db.String)
     stadium = db.Column(db.String)
+    logo = db.Column(db.String)
 
     def __str__(self):
         return json.dumps(
@@ -22,6 +23,7 @@ class TeamsModel(db.Model):
                 "city": self.city,
                 "state": self.state,
                 "foundation_date": self.foundation_date,
+                "logo": self.logo,
             },
             default=serialize,
         )

@@ -7,27 +7,36 @@
 <hr>
 <table>
     <td>
+        <div id="image">
+            <img height="312" src="{{ team.logo }}">
+        </div>
+    </td>
+    <td width="20"></td>
+    <td>
         <form id="team" method="post" onsubmit="return sendUpdateRequest()">
             <label for="name">Name:</label><br>
-            <input type="text" id="name" name="name" value="{{ team.name }}" minlength="2" required><br><br>
+            <input type="text" id="name" name="name" value="{{ team.name }}" minlength="2" required><br>
             <label for="stadium">Stadium:</label><br>
-            <input type="text" id="stadium" name="stadium" value="{{ team.stadium  or ''}}" minlength="2">
-            <br><br>
+            <input type="text" id="stadium" name="stadium" value="{{ team.stadium  or ''}}" minlength="2"><br>
             <label for="city">City:</label><br>
-            <input type="text" id="city" name="city" value="{{ team.city or ''}}" minlength="2"><br><br>
+            <input type="text" id="city" name="city" value="{{ team.city or ''}}" minlength="2"><br>
             <label for="state">State:</label><br>
             <select name="state" id="state">
                 {% for state in states %}
                 <option value="{{ state }}" {% if team.state==state %} selected {% endif %}>{{ state }}
                 </option>
                 {% endfor %}
-            </select><br><br>
+            </select><br>
             <label for="foundation_date">Foundation Date:</label><br>
             <input type="date" id="foundation_date" name="foundation_date" {% if team.foundation_date %} value={{
-                team.foundation_date }} {% endif %} min="1800-01-01" max="2023-12-31" /><br><br>
+                team.foundation_date }} {% endif %} min="1800-01-01" max="2023-12-31" /><br>
+            <label for="logo">Logo:</label><br>
+            <input type="text" id="logo" name="logo" value="{{ team.logo or ''}}" oninput="getImg()"><br>
+            <br>
             <input type="submit" value="Update">
         </form>
     </td>
+    <td width="20"></td>
     <td style="vertical-align: top;">
         <table id="players" class="table table-striped">
             <thead>
@@ -106,13 +115,20 @@
         if (document.forms["team"]["foundation_date"].value == "" && "{{ team.foundation_date }}" == "None") {
             document.forms["team"]["foundation_date"].disabled = true;
         }
+        json = Object.fromEntries(new FormData(document.forms["team"]).entries());
+        if (json.logo == "") {
+            json.logo = null;
+        }
+        if (json.foundation_date == "") {
+            json.foundation_date = null;
+        }
         fetch("{{ url_for('team.Team', team_id=team.id) }}", {
             method: 'PUT',
             headers: {
                 'Accept': '*/*',
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(Object.fromEntries(new FormData(document.forms["team"]).entries()))
+            body: JSON.stringify(json)
         })
             .then(response => {
                 if (response.ok) {
@@ -132,6 +148,19 @@
             .finally(() => {
                 location.href = "{{ url_for('team.Team',team_id=team.id) }}";
             });
+        return false;
+    }
+    function getImg() {
+        var url = document.getElementById('logo').value;
+        var div = document.createElement('div');
+        div.className = "imageWrapper";
+        var img = document.createElement('img');
+        img.src = url;
+        img.height = 312
+        div.appendChild(img);
+        while (document.getElementById('image').firstChild)
+            document.getElementById('image').removeChild(document.getElementById('image').firstChild);
+        document.getElementById('image').appendChild(div);
         return false;
     }
 </script>

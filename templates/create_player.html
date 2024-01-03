@@ -8,29 +8,39 @@
 <hr>
 {% if message %}<b>{{ message }}</b><br> {% endif %}
 <table>
-    <form name="player" method="post" action="{{ url_for('player.AllPlayers') }}" onsubmit="return validateForm()"
-        enctype="multipart/form-data">
-        <label for="name">Name:</label><br>
-        <input type="text" id="name" name="name" {% if player.name %} value="{{ player.name }}" {% endif %}
-            minlength="2" required><br><br>
-        <label for="position">Position:</label><br>
-        <select name="position" id="position">
-            {% for position in positions %}
-            <option value="{{ position }}" {% if player.position==position %} selected {% endif %}>{{ position }}
-            </option>
-            {% endfor %}
-        </select><br><br>
-        <label for="team_id">Team:</label><br>
-        <select name="team_id" id="team_id">
-            {% for team in teams %}
-            <option value="{{ team.id }}" {% if player.team_id==team.id %} selected {% endif %}>{{ team.name }}</option>
-            {% endfor %}
-        </select><br><br>
-        <label for="birth_date">Birth Date:</label>
-        <input type="date" id="birth_date" name="birth_date" {% if player.birth_date %} value="{{ player.birth_date }}"
-            {% endif %} min="1900-01-01" max="2006-12-31" /><br><br>
-        <input type="submit" value="Create">
-    </form>
+    <td>
+        <form name="player" method="post" action="{{ url_for('player.AllPlayers') }}" onsubmit="return validateForm()"
+            enctype="multipart/form-data">
+            <label for="name">Name:</label><br>
+            <input type="text" id="name" name="name" {% if player.name %} value="{{ player.name }}" {% endif %}
+                minlength="2" required><br>
+            <label for="position">Position:</label><br>
+            <select name="position" id="position">
+                {% for position in positions %}
+                <option value="{{ position }}" {% if player.position==position %} selected {% endif %}>{{ position }}
+                </option>
+                {% endfor %}
+            </select><br>
+            <label for="team_id">Team:</label><br>
+            <select name="team_id" id="team_id">
+                {% for team in teams %}
+                <option value="{{ team.id }}" {% if player.team_id==team.id %} selected {% endif %}>{{ team.name }}
+                </option>
+                {% endfor %}
+            </select><br>
+            <label for="birth_date">Birth Date:</label><br>
+            <input type="date" id="birth_date" name="birth_date" {% if player.birth_date %}
+                value="{{ player.birth_date }}" {% endif %} min="1900-01-01" max="2006-12-31" /><br>
+            <label for="portrait">Portrait:</label><br>
+            <input type="text" id="portrait" name="portrait" oninput="getImg()"><br>
+            <br>
+            <input type="submit" value="Create">
+        </form>
+    </td>
+    <td width="20"></td>
+    <td>
+        <div id="image"></div>
+    </td>
 </table>
 {% endblock %}
 {% block scripts %}
@@ -42,6 +52,19 @@
                 input.disabled = true;
             }
         }
+    }
+    function getImg() {
+        var url = document.getElementById('portrait').value;
+        var div = document.createElement('div');
+        div.className = "imageWrapper";
+        var img = document.createElement('img');
+        img.src = url;
+        img.height = 312
+        div.appendChild(img);
+        while (document.getElementById('image').firstChild)
+            document.getElementById('image').removeChild(document.getElementById('image').firstChild);
+        document.getElementById('image').appendChild(div);
+        return false;
     }
 </script>
 {% endblock %}

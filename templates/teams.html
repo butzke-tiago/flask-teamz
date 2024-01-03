@@ -13,6 +13,7 @@
 <table id="data" class="table table-striped">
     <thead>
         <tr>
+            <th></th>
             <th>Name</th>
             <th>Foundation Date</th>
             <th>Stadium</th>
@@ -23,6 +24,8 @@
     <tbody>
         {% for team in teams %}
         <tr>
+            <td><img height="32" src="{{ team.logo }}">
+            </td>
             <td><a href="{{ url_for('team.Team', team_id=team.id) }}">{{ team.name }}</a></td>
             <td>{{ team.foundation_date or ''}}</td>
             <td>{{ team.stadium or ''}}</td>

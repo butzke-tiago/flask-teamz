@@ -140,6 +140,8 @@ class Player(MethodView):
             player.position = player_info["position"]
         if "team_id" in player_info:
             player.team_id = player_info["team_id"] or None
+        if "portrait" in player_info:
+            player.portrait = player_info["portrait"]
         try:
             db.session.add(player)
             db.session.commit()

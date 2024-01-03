@@ -147,6 +147,8 @@ class Team(MethodView):
             team.state = team_info["state"]
         if "foundation_date" in team_info:
             team.foundation_date = team_info["foundation_date"]
+        if "logo" in team_info:
+            team.logo = team_info["logo"]
         try:
             db.session.add(team)
             db.session.commit()

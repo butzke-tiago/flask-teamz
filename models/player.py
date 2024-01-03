@@ -11,6 +11,7 @@ class PlayersModel(db.Model):
     birth_date = db.Column(db.Date)
     position = db.Column(db.String)
     team_id = db.Column(db.Integer, db.ForeignKey("teams.id"))
+    portrait = db.Column(db.String)
 
     def __str__(self):
         return json.dumps(
@@ -20,6 +21,7 @@ class PlayersModel(db.Model):
                 "birth_date": self.birth_date,
                 "position": self.position,
                 "team_id": self.team_id,
+                "portrait": self.portrait,
             },
             default=serialize,
         )

@@ -58,10 +58,11 @@ BRAZILIAN_STATES = [
 class TeamUpdateSchema(Schema):
     id = fields.Integer(dump_only=True)
     name = fields.Str()
-    foundation_date = fields.Date()
+    foundation_date = fields.Date(allow_none=True)
     stadium = fields.Str()
     city = fields.Str()
     state = fields.Str(validate=OneOf(BRAZILIAN_STATES))
+    logo = fields.Url(allow_none=True)
 
 
 class TeamBaseSchema(TeamUpdateSchema):
@@ -72,8 +73,9 @@ class PlayerUpdateSchema(Schema):
     id = fields.Integer(dump_only=True)
     name = fields.Str()
     position = fields.Str(validate=OneOf(PLAYER_POSITIONS))
-    birth_date = fields.Date()
+    birth_date = fields.Date(allow_none=True)
     team_id = fields.Integer()
+    portrait = fields.Url(allow_none=True)
 
 
 class PlayerBaseSchema(Schema):

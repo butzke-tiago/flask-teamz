@@ -11,6 +11,7 @@
 <table id="data" class="table table-striped">
     <thead>
         <tr>
+            <th></th>
             <th>Name</th>
             <th>Birth Date</th>
             <th>Position</th>
@@ -21,6 +22,8 @@
     <tbody>
         {% for player in players %}
         <tr>
+            <td><img height="32" src="{{ player.portrait }}">
+            </td>
             <td><a href="{{ url_for('player.Player', player_id=player.id) }}">{{ player.name }}</a></td>
             <td>{{ player.birth_date if player.birth_date else '' }}</td>
             <td>{{ player.position if player.position else ''}}</td>

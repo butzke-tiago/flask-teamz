@@ -8,30 +8,38 @@
 <hr>
 {% if message %}<b>{{ message }}</b><br> {% endif %}
 <table>
-    <form name="team" method="post" action="{{ url_for('team.AllTeams') }}" onsubmit="return validateForm()"
-        enctype="multipart/form-data">
-        <label for="name">Name:</label><br>
-        <input type="text" id="name" name="name" {% if team.name %} value="{{ team.name }}" {% endif %} minlength="2"
-            required><br><br>
-        <label for="stadium">Stadium:</label><br>
-        <input type="text" id="stadium" name="stadium" {% if team.stadium %} value="{{ team.stadium }}" {% endif %}
-            minlength="2">
-        <br><br>
-        <label for="city">City:</label><br>
-        <input type="text" id="city" name="city" {% if team.city %} value="{{ team.city }}" {% endif %}
-            minlength="2"><br><br>
-        <label for="state">State:</label><br>
-        <select name="state" id="state">
-            {% for state in states %}
-            <option value="{{ state }}" {% if team.state==state %} selected {% endif %}>{{ state }}
-            </option>
-            {% endfor %}
-        </select><br><br>
-        <label for="foundation_date">Foundation Date:</label>
-        <input type="date" id="foundation_date" name="foundation_date" {% if team.foundation_date %}
-            value="{{ team.foundation_date }}" {% endif %} min="1800-01-01" max="2023-12-31" /><br><br>
-        <input type="submit" value="Create">
-    </form>
+    <td>
+        <form name="team" method="post" action="{{ url_for('team.AllTeams') }}" onsubmit="return validateForm()"
+            enctype="multipart/form-data">
+            <label for="name">Name:</label><br>
+            <input type="text" id="name" name="name" {% if team.name %} value="{{ team.name }}" {% endif %}
+                minlength="2" required><br>
+            <label for="stadium">Stadium:</label><br>
+            <input type="text" id="stadium" name="stadium" {% if team.stadium %} value="{{ team.stadium }}" {% endif %}
+                minlength="2"><br>
+            <label for="city">City:</label><br>
+            <input type="text" id="city" name="city" {% if team.city %} value="{{ team.city }}" {% endif %}
+                minlength="2"><br>
+            <label for="state">State:</label><br>
+            <select name="state" id="state">
+                {% for state in states %}
+                <option value="{{ state }}" {% if team.state==state %} selected {% endif %}>{{ state }}
+                </option>
+                {% endfor %}
+            </select><br>
+            <label for="foundation_date">Foundation Date:</label><br>
+            <input type="date" id="foundation_date" name="foundation_date" {% if team.foundation_date %}
+                value="{{ team.foundation_date }}" {% endif %} min="1800-01-01" max="2023-12-31" /><br>
+            <label for="logo">Logo:</label><br>
+            <input type="text" id="logo" name="logo" oninput="getImg()"><br>
+            <br>
+            <input type="submit" value="Create">
+        </form>
+    </td>
+    <td width="20"></td>
+    <td>
+        <div id="image"></div>
+    </td>
 </table>
 {% endblock %}
 {% block scripts %}
@@ -43,6 +51,19 @@
                 input.disabled = true;
             }
         }
+    }
+    function getImg() {
+        var url = document.getElementById('logo').value;
+        var div = document.createElement('div');
+        div.className = "imageWrapper";
+        var img = document.createElement('img');
+        img.src = url;
+        img.height = 312
+        div.appendChild(img);
+        while (document.getElementById('image').firstChild)
+            document.getElementById('image').removeChild(document.getElementById('image').firstChild);
+        document.getElementById('image').appendChild(div);
+        return false;
     }
 </script>
 {% endblock %}
