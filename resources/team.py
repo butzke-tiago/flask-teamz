@@ -1,7 +1,8 @@
-from flask import current_app as app, render_template
+from flask import current_app as app, render_template, flash, redirect, url_for
 from flask_accept import accept_fallback
-from flask.views import MethodView
+from flask_login import login_required, current_user
 from flask_smorest import Blueprint, abort
+from flask.views import MethodView
 from models import TeamModel, TeamsModel, PlayersModel, TeamPlayersModel
 from .db import db
 from .schemas import (
@@ -24,7 +25,7 @@ class AllTeams(MethodView):
         app.logger.info("Getting all the teams...")
         teams = TeamModel.query.all()
         app.logger.info(f"Found {len(teams)} teams.")
-        return render_template("teams.html", teams=teams, title="Teams")
+        return render_template("team/all.html", teams=teams, title="Teams")
 
     @get.support("application/json")
     @blp.response(200, TeamSchema(many=True))
@@ -35,18 +36,21 @@ class AllTeams(MethodView):
         return teams
 
     @accept_fallback
+    @login_required
     @blp.arguments(TeamSchema, location="form")
     def post(self, team_info):
         app.logger.debug(team_info)
-        team = TeamModel(**team_info)
+        app.logger.debug(current_user.id)
+        team = TeamModel(owner_id=current_user.id, **team_info)
         try:
             db.session.add(team)
             db.session.commit()
         except IntegrityError as e:
             app.logger.error(e)
+            flash("Team already exists!")
             return (
                 render_template(
-                    "create_team.html",
+                    "team/create.html",
                     title="Create your Team",
                     states=BRAZILIAN_STATES,
                     message=f"Team already exists!",
@@ -58,7 +62,7 @@ class AllTeams(MethodView):
             app.logger.error(e)
             return (
                 render_template(
-                    "create_team.html",
+                    "team/create.html",
                     title="Create your Team",
                     message=f"{e}",
                     states=BRAZILIAN_STATES,
@@ -66,17 +70,8 @@ class AllTeams(MethodView):
                 500,
             )
         app.logger.debug(f"Created team: {team}")
-        teams = TeamModel.query.all()
-
-        return (
-            render_template(
-                "teams.html",
-                teams=teams,
-                title="Teams",
-                message=f"Team {team.name!r} created!",
-            ),
-            201,
-        )
+        flash(f"Team {team.name!r} created!")
+        return redirect(url_for("user.User"))
 
     @post.support("application/json")
     @blp.arguments(TeamSchema)
@@ -102,14 +97,14 @@ class Team(MethodView):
         app.logger.debug(f"Team: {team}")
         if "edit" in kwargs:
             return render_template(
-                "edit_team.html",
+                "team/edit.html",
                 title=f"Team: {team.name}",
                 states=BRAZILIAN_STATES,
                 team=team,
             )
         else:
             return render_template(
-                "team.html",
+                "team/view.html",
                 title=f"Team: {team.name}",
                 states=BRAZILIAN_STATES,
                 team=team,
@@ -122,6 +117,7 @@ class Team(MethodView):
         team = TeamModel.query.get_or_404(team_id)
         return team
 
+    @login_required
     def delete(self, team_id):
         app.logger.info(f"Deleting team {team_id}...")
         team = TeamModel.query.get_or_404(team_id)
@@ -129,10 +125,12 @@ class Team(MethodView):
         db.session.commit()
         message = f"Deleted team: {team_id!r}"
         app.logger.debug(message)
+        flash(f"Team {team.name!r} deleted!")
         return {"message": message}
 
     @blp.arguments(TeamUpdateSchema)
     @blp.response(200, schema=TeamSchema)
+    @login_required
     def put(self, team_info, team_id):
         app.logger.info(f"Updating team {team_id!r}...")
         app.logger.debug(f"Update value: {team_info}")
@@ -174,9 +172,10 @@ class TeamPlayers(MethodView):
 @blp.route("/team/create")
 class CreateTeam(MethodView):
     @accept_fallback
+    @login_required
     def get(self):
         return render_template(
-            "create_team.html",
+            "team/create.html",
             title="Create your Team",
             states=BRAZILIAN_STATES,
             team=TeamModel(id=0),

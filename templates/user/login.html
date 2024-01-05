@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+<table>
+    <td><a href="javascript:history.back()">Back</a></td>
+</table>
+<hr>
+<form method="post" action="{{ url_for('user.Login', **request.args) }}" enctype="multipart/form-data">
+    <label for="username">Username:</label><br>
+    <input type="text" id="username" name="username" minlength="2" required><br>
+    <label for="password">Password:</label><br>
+    <input type="password" id="password" name="password" minlength="2" required><br>
+    <br>
+    <input type="submit" value="Login">
+</form>
+{% endblock %}

@@ -74,7 +74,7 @@ class PlayerUpdateSchema(Schema):
     name = fields.Str()
     position = fields.Str(validate=OneOf(PLAYER_POSITIONS))
     birth_date = fields.Date(allow_none=True)
-    team_id = fields.Integer()
+    team_id = fields.Integer(allow_none=True)
     portrait = fields.Url(allow_none=True)
 
 
@@ -91,12 +91,31 @@ class PlayerSchema(PlayerBaseSchema):
     team = fields.Nested(TeamBaseSchema(), dump_only=True)
 
 
+class UserBaseSchema(Schema):
+    id = fields.Int(dump_only=True)
+    username = fields.Str(required=True)
+    email = fields.Email(required=True, dump_only=True)
+    password = fields.Str(required=True, load_only=True)
+
+
+class UserCreateSchema(UserBaseSchema):
+    email = fields.Email(required=True)
+
+
 class TeamSchema(TeamBaseSchema):
     players = fields.List(fields.Nested(PlayerBaseSchema()), dump_only=True)
 
 
+class UserSchema(UserCreateSchema):
+    teams = fields.List(fields.Nested(TeamBaseSchema()), dump_only=True)
+
+
 class EditSchema(Schema):
     edit = fields.Int()
+
+
+class NextSchema(Schema):
+    next = fields.Str()
 
 
 def serialize(obj):

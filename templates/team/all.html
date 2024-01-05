@@ -3,8 +3,10 @@
 {% block content %}
 <table>
     <tr>
-        <td><a href={{ url_for("home") }}>Home</a></td>
-        <td><a href={{ url_for("team.CreateTeam") }}>Create a Team</a></td><br>
+        <td><a href="{{ url_for('home') }}">Home</a></td>
+        <td><a href="{{ url_for('team.CreateTeam') }}">Create a Team</a></td><br>
+        {% if current_user.is_authenticated %}<td><a href="{{ url_for('user.Logout') }}">Logout</a></td>{% endif %}
+
     </tr>
 </table>
 <hr>

@@ -13,6 +13,7 @@ class TeamsModel(db.Model):
     state = db.Column(db.String)
     stadium = db.Column(db.String)
     logo = db.Column(db.String)
+    owner_id = db.Column(db.Integer, db.ForeignKey("users.id"))
 
     def __str__(self):
         return json.dumps(
@@ -24,6 +25,7 @@ class TeamsModel(db.Model):
                 "state": self.state,
                 "foundation_date": self.foundation_date,
                 "logo": self.logo,
+                "owner_id": self.owner_id,
             },
             default=serialize,
         )
@@ -31,6 +33,7 @@ class TeamsModel(db.Model):
 
 class TeamModel(TeamsModel):
     players = db.relationship("PlayerModel", back_populates="team", lazy="dynamic")
+    owner = db.relationship("UserModel", back_populates="teams")
 
 
 class TeamPlayersModel(TeamsModel):

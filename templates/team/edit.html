@@ -28,8 +28,8 @@
                 {% endfor %}
             </select><br>
             <label for="foundation_date">Foundation Date:</label><br>
-            <input type="date" id="foundation_date" name="foundation_date" {% if team.foundation_date %} value={{
-                team.foundation_date }} {% endif %} min="1800-01-01" max="2023-12-31" /><br>
+            <input type="date" id="foundation_date" name="foundation_date" {% if team.foundation_date %}
+                value="{{ team.foundation_date }}" {% endif %} min=" 1800-01-01" max="2023-12-31" /><br>
             <label for="logo">Logo:</label><br>
             <input type="text" id="logo" name="logo" value="{{ team.logo or ''}}" oninput="getImg()"><br>
             <br>
@@ -63,7 +63,8 @@
                 </tr>
                 {% endfor %}
                 <tr>
-                    <td colspan="4"><a href={{ url_for("player.CreatePlayer") }}>Create a Player</a></td>
+                    <td colspan="4"><a href="{{ url_for('player.CreatePlayer', team_id=team.id ) }}">Create a
+                            Player</a></td>
                 </tr>
             </tbody>
         </table>
@@ -114,6 +115,9 @@
         }
         if (document.forms["team"]["foundation_date"].value == "" && "{{ team.foundation_date }}" == "None") {
             document.forms["team"]["foundation_date"].disabled = true;
+        }
+        if (document.forms["team"]["logo"].value == "" && "{{ team.logo }}" == "None") {
+            document.forms["team"]["logo"].disabled = true;
         }
         json = Object.fromEntries(new FormData(document.forms["team"]).entries());
         if (json.logo == "") {

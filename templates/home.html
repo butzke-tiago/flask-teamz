@@ -3,6 +3,8 @@
 {% block content %}
 {% if message %}<b>{{ message }}</b><br> {% endif %}
 <hr>
-<td><a href={{ url_for("team.AllTeams") }}>Teams</a></td><br>
-<td><a href={{ url_for("player.AllPlayers") }}>Players</a></td><br>
+<td><a href="{{ url_for('user.Signup') }}">Signup</a></td><br>
+<td><a href="{{ url_for('user.Login') }}">Login</a></td><br>
+<td><a href="{{ url_for('team.AllTeams') }}">Teams</a></td><br>
+<td><a href="{{ url_for('player.AllPlayers') }}">Players</a></td><br>
 {% endblock %}

@@ -1,16 +1,16 @@
 from flask import Flask, render_template
+from flask_login import LoginManager
 from flask_smorest import Api
 from resources.team import blp as TeamBlueprint
 from resources.player import blp as PlayerBlueprint
+from resources.user import blp as UserBlueprint
 from flask_migrate import Migrate, upgrade
 from resources.db import db
+from models import UserModel
 
 
 def create_app():
     app = Flask(__name__)
-    # gunicorn_logger = logging.getLogger("gunicorn.error")
-    # app.logger.handlers = gunicorn_logger.handlers
-    # app.logger.setLevel(gunicorn_logger.level)
 
     app.config["API_TITLE"] = "TeamZ API"
     app.config["API_VERSION"] = "1.0"
@@ -23,7 +23,7 @@ def create_app():
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///data.db"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     db.init_app(app)
-    migrate = Migrate(app, db)
+    migrate = Migrate(app, db, render_as_batch=True)
 
     @app.get("/")
     def home():
@@ -31,10 +31,18 @@ def create_app():
 
     api = Api(app)
 
-    with app.app_context():
-        upgrade()
-
     api.register_blueprint(TeamBlueprint)
     api.register_blueprint(PlayerBlueprint)
+    api.register_blueprint(UserBlueprint)
+
+    login_manager = LoginManager()
+    login_manager.login_view = "user.Login"
+    login_manager.init_app(app)
+    app.secret_key = "1234"
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        # since the user_id is just the primary key of our user table, use it in the query for the user
+        return UserModel.query.get(int(user_id))
 
     return app

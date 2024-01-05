@@ -2,8 +2,9 @@
 
 {% block content %}
 <table>
-    <td><a href={{ url_for("home") }}>Home</a></td>
-    <td><a href={{ url_for("player.CreatePlayer") }}>Create a Player</a></td><br>
+    <td><a href="{{ url_for('home') }}">Home</a></td>
+    <td><a href="{{ url_for('player.CreatePlayer') }}">Create a Player</a></td><br>
+    {% if current_user.is_authenticated %}<td><a href="{{ url_for('user.Logout') }}">Logout</a></td>{% endif %}
 </table>
 <hr>
 {% if message %}<b>{{ message }}</b><br> {% endif %}

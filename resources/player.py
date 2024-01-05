@@ -1,5 +1,6 @@
 from flask import current_app as app, render_template
 from flask_accept import accept_fallback
+from flask_login import login_required
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 import logging
@@ -12,7 +13,7 @@ from .schemas import PlayerSchema, PlayerUpdateSchema, EditSchema, PLAYER_POSITI
 
 
 blp = Blueprint("player", __name__, description="Operations on players.")
-NO_TEAM = TeamsModel(id=0, name="")
+NO_TEAM = TeamsModel(id=None, name="")
 
 
 @blp.route("/player/")
@@ -22,7 +23,7 @@ class AllPlayers(MethodView):
         app.logger.info("Getting all the players...")
         players = PlayerModel.query.all()
         app.logger.info(f"Found {len(players)} players.")
-        return render_template("players.html", players=players, title="Players")
+        return render_template("player/all.html", players=players, title="Players")
 
     @get.support("application/json")
     @blp.response(200, PlayerUpdateSchema(many=True))
@@ -33,6 +34,7 @@ class AllPlayers(MethodView):
         return players
 
     @accept_fallback
+    @login_required
     @blp.arguments(PlayerSchema, location="form")
     def post(self, player_info):
         app.logger.debug(player_info)
@@ -47,7 +49,7 @@ class AllPlayers(MethodView):
             teams = TeamsModel.query.all()
             return (
                 render_template(
-                    "create_player.html",
+                    "player/create.html",
                     title="Create your Player",
                     message=f"{e}",
                     positions=PLAYER_POSITIONS,
@@ -61,7 +63,7 @@ class AllPlayers(MethodView):
 
         return (
             render_template(
-                "players.html",
+                "player/all.html",
                 players=players,
                 title="Players",
                 message=f"Player {player.name!r} created!",
@@ -94,7 +96,7 @@ class Player(MethodView):
         app.logger.debug(f"Player: {player}")
         if "edit" in kwargs:
             return render_template(
-                "edit_player.html",
+                "player/edit.html",
                 title=f"Player: {player.name}",
                 positions=PLAYER_POSITIONS,
                 teams=[NO_TEAM] + teams,
@@ -102,7 +104,7 @@ class Player(MethodView):
             )
         else:
             return render_template(
-                "player.html",
+                "player/view.html",
                 title=f"Player: {player.name}",
                 positions=PLAYER_POSITIONS,
                 teams=[NO_TEAM] + teams,
@@ -117,6 +119,7 @@ class Player(MethodView):
         app.logger.debug(f"Player: {player}")
         return player
 
+    @login_required
     def delete(self, player_id):
         app.logger.info(f"Deleting player {player_id}...")
         player = PlayerModel.query.get_or_404(player_id)
@@ -128,6 +131,7 @@ class Player(MethodView):
 
     @blp.arguments(PlayerUpdateSchema)
     @blp.response(200, schema=PlayerSchema)
+    @login_required
     def put(self, player_info, player_id):
         app.logger.info(f"Updating player {player_id!r}...")
         app.logger.debug(f"Update value: {player_info}")
@@ -139,7 +143,7 @@ class Player(MethodView):
         if "position" in player_info:
             player.position = player_info["position"]
         if "team_id" in player_info:
-            player.team_id = player_info["team_id"] or None
+            player.team_id = player_info["team_id"]
         if "portrait" in player_info:
             player.portrait = player_info["portrait"]
         try:
@@ -154,12 +158,17 @@ class Player(MethodView):
 @blp.route("/player/create")
 class CreatePlayer(MethodView):
     @accept_fallback
-    def get(self):
-        teams = TeamsModel.query.all()
+    @login_required
+    @blp.arguments(PlayerUpdateSchema, location="query", as_kwargs=True)
+    def get(self, **kwargs):
+        if "team_id" in kwargs:
+            teams = [TeamsModel.query.get(kwargs["team_id"])]
+        else:
+            teams = [NO_TEAM] + TeamsModel.query.all()
         return render_template(
-            "create_player.html",
+            "player/create.html",
             title="New Player",
             positions=PLAYER_POSITIONS,
-            teams=[NO_TEAM] + teams,
+            teams=teams,
             player=PlayerModel(),
         )

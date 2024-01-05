@@ -3,7 +3,8 @@
 {% block content %}
 <table>
     <td><a href="javascript:history.back()">Back</a></td>
-    <td><a href={{ url_for("team.AllTeams") }}>Teams</a></td><br>
+    <td><a href="{{ url_for('team.AllTeams') }}">Teams</a></td><br>
+    {% if current_user.is_authenticated %}<td><a href="{{ url_for('user.Logout') }}">Logout</a></td>{% endif %}
 </table>
 <hr>
 <table>
@@ -31,10 +32,12 @@
                 min="1800-01-01" max="2023-12-31" disabled /><br>
         </form>
         <br>
+        {% if current_user.id == team.owner_id %}
         <form id="edit" action="{{ url_for('team.Team', team_id=team.id) }}">
             <input type="hidden" name="edit" value="1" />
             <input type="submit" value="Edit">
         </form>
+        {% endif %}
     </td>
     <td width="20"></td>
     <td style="vertical-align:top">

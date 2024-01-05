@@ -1,7 +1,9 @@
 flask
 flask-accept
+flask-login
 flask-migrate
 flask-smorest
 flask-sqlalchemy
+passlib
 python-dotenv
 sqlalchemy
