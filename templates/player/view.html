@@ -1,20 +1,19 @@
 {% extends "base.html" %}
 
 {% block bar %}
-<table>
+<tr>
     <td><a href="{{ url_for('home') }}">Home</a></td>
     <td><a href="{{ url_for('player.AllPlayers') }}">Players</a></td>
     {% if current_user.is_authenticated %}<td><a href="{{ url_for('user.Logout') }}">Logout</a></td>{% endif %}
-</table>
+</tr>
 {% endblock %}
 
 {% block content %}
 <hr>
-<table>
+<table class="table-striped">
     <td>
         <img height="312" src="{{ player.portrait or url_for('static', filename='player.png') }}">
     </td>
-    <td width="20"></td>
     <td style="vertical-align: top;">
         <form id="player">
             <label for="name">Name:</label><br>
@@ -38,11 +37,14 @@
                 value="{{ player.birth_date }}" {% endif %} min="1900-01-01" max="2023-12-31" disabled /><br>
         </form>
         <br>
-        {% if current_user.id == player.team.owner_id %}
+        {% if current_user.is_authenticated %}
+        {%if current_user.id == player.team.owner_id or not player.team.owner_id%}
+
         <form id="edit" action="{{ url_for('player.Player', player_id=player.id) }}">
             <input type="hidden" name="edit" value="1" />
             <input type="submit" value="Edit">
         </form>
+        {% endif %}
         {% endif %}
     </td>
 </table>

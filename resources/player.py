@@ -1,4 +1,4 @@
-from flask import current_app as app, render_template
+from flask import current_app as app, render_template, flash
 from flask_accept import accept_fallback
 from flask_login import login_required, current_user
 from flask.views import MethodView
@@ -46,11 +46,11 @@ class AllPlayers(MethodView):
         except SQLAlchemyError as e:
             app.logger.error(e)
             teams = TeamsModel.query.all()
+            flash(f"{e}")
             return (
                 render_template(
                     "player/create.html",
                     title="Create your Player",
-                    message=f"{e}",
                     positions=PLAYER_POSITIONS,
                     teams=[NO_TEAM] + teams,
                     player=player,
@@ -59,13 +59,12 @@ class AllPlayers(MethodView):
             )
         app.logger.debug(f"Created player: {player}")
         players = PlayerModel.query.all()
-
+        flash(f"Player {player.name!r} created!")
         return (
             render_template(
                 "player/all.html",
                 players=players,
                 title="Players",
-                message=f"Player {player.name!r} created!",
             ),
             201,
         )
@@ -95,7 +94,7 @@ class Player(MethodView):
         if (
             "edit" in kwargs
             and current_user.is_authenticated
-            and current_user.id == player.team.owner_id
+            and (not player.team or current_user.id == player.team.owner_id)
         ):
             teams = TeamsModel.query.filter_by(owner_id=current_user.id).all()
             return render_template(

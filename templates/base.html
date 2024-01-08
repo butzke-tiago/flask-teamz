@@ -11,7 +11,7 @@
     <div class="container">
         <h1>{{ title }}</h1>
         <hr>
-        <table id="body">
+        <table id="body" style="width: 100%;">
             <tr>
                 <td></td>
                 <td>
@@ -27,11 +27,19 @@
             <tr>
                 <td></td>
                 <td>
-                    {% block bar %}{% endblock %}
+                    <table id="bar">
+                        <style scoped>
+                            td {
+                                padding-left: 5px;
+                                padding-right: 5px;
+                            }
+                        </style>
+                        {% block bar %}{% endblock %}
+                    </table>
                 </td>
             </tr>
             <tr>
-                <td style="vertical-align: top;">
+                <td style="vertical-align: top; width: 5%">
                     {% block menu %}
                     <table name="menu">
                         <tr>
@@ -50,7 +58,35 @@
         </table>
         <hr>
     </div>
-    {% block scripts %}{% endblock %}
+    {% block scripts %}
+    <script>
+        function sendDeleteRequest(url, next) {
+            fetch(`${url}`, {
+                method: 'DELETE',
+                headers: {
+                    'Accept': '*/*'
+                },
+            })
+                .then(response => {
+                    if (response.ok) {
+                        // Handle successful response
+                        console.log('Delete request successful');
+                    } else {
+                        // Handle error response
+                        console.error('Delete request failed');
+                        flash("Failed to delete player.")
+                    }
+                })
+                .catch(error => {
+                    // Handle network error
+                    console.error('An error occurred:', error);
+                })
+                .finally(() => {
+                    location.href = next;
+                });
+        }
+    </script>
+    {% endblock %}
 </body>
 
 </html>

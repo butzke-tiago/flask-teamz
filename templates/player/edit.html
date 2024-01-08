@@ -1,22 +1,21 @@
 {% extends "base.html" %}
 
 {% block bar %}
-<table>
+<tr>
     <td><a href="{{ url_for('home') }}">Home</a></td>
     <td><a href="{{ url_for('player.AllPlayers') }}">Players</a></td>
     {% if current_user.is_authenticated %}<td><a href="{{ url_for('user.Logout') }}">Logout</a></td>{% endif %}
-</table>
+</tr>
 {% endblock %}
 
 {% block content %}
 <hr>
-<table>
+<table class="table-striped">
     <td>
         <div id="image">
             <img height="312" src="{{ player.portrait or url_for('static', filename='player.png') }}">
         </div>
     </td>
-    <td width="20"></td>
     <td>
         <form id="player" onsubmit="return sendUpdateRequest()">
             <label for="name">Name:</label><br>
@@ -46,7 +45,6 @@
         </form>
     </td>
 </table>
-
 {% endblock %}
 
 {% block scripts %}

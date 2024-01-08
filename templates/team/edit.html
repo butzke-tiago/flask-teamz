@@ -1,30 +1,27 @@
 {% extends "base.html" %}
 
 {% block bar %}
-<table>
-    <tr>
-        <td></td>
-        <td><a href="{{ url_for('home') }}">Home</a></td>
-        {% if current_user.is_authenticated %}
-        <td><a href="{{ url_for('user.User') }}">Your Teams</a></td>
-        <td><a href="{{ url_for('user.Logout') }}">Logout</a></td>
-        {% else %}
-        <td><a href="{{ url_for('user.Signup') }}">Signup</a></td>
-        <td><a href="{{ url_for('user.Login') }}">Login</a></td>
-        {% endif %}
-    </tr>
-</table>
+<tr>
+    <td></td>
+    <td><a href="{{ url_for('home') }}">Home</a></td>
+    {% if current_user.is_authenticated %}
+    <td><a href="{{ url_for('user.User') }}">Your Teams</a></td>
+    <td><a href="{{ url_for('user.Logout') }}">Logout</a></td>
+    {% else %}
+    <td><a href="{{ url_for('user.Signup') }}">Signup</a></td>
+    <td><a href="{{ url_for('user.Login') }}">Login</a></td>
+    {% endif %}
+</tr>
 {% endblock %}
 
 {% block content %}
 <hr>
-<table>
+<table id="team" class="table-striped">
     <td>
         <div id="image">
             <img height="312" src="{{ team.logo or url_for('static', filename='team.png') }}">
         </div>
     </td>
-    <td width="20"></td>
     <td>
         <form id="team" onsubmit="return sendUpdateRequest()">
             <label for="name">Name:</label><br>
@@ -72,7 +69,7 @@
                     <td>{{ player.position }}</td>
                     <td>
                         <button
-                            onclick="sendDeleteRequest('{{ url_for('player.Player', player_id=player.id) }}')">Delete</button>
+                            onclick="sendDeleteRequest('{{ url_for('player.Player', player_id=player.id) }}', '{{ url_for('team.Team',team_id=team.id, edit=1) }}')">Delete</button>
                     </td>
                 </tr>
                 {% endfor %}
@@ -87,35 +84,7 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
-    function sendDeleteRequest(url) {
-        fetch(`${url}`, {
-            method: 'DELETE',
-            headers: {
-                'Accept': '*/*'
-            },
-        })
-            .then(response => {
-                if (response.ok) {
-                    // Handle successful response
-                    console.log('Delete request successful');
-                } else {
-                    // Handle error response
-                    console.error('Delete request failed');
-                    alert("Failed to delete!")
-                }
-            })
-            .catch(error => {
-                // Handle network error
-                console.error('An error occurred:', error);
-                alert("Failed to delete!")
-            })
-            .finally(() => {
-                location.reload()
-                location.href = "{{ url_for('team.Team',team_id=team.id, edit=1) }}";
-            });
-    }
-</script>
+{{ super() }}
 <script>
     function sendUpdateRequest() {
         if (document.forms["team"]["stadium"].value == "" && "{{ team.stadium }}" == "") {

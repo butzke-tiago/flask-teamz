@@ -97,7 +97,7 @@ class Team(MethodView):
         if (
             "edit" in kwargs
             and current_user.is_authenticated
-            and current_user.id == team.owner_id
+            and (not team.owner_id or current_user.id == team.owner_id)
         ):
             return render_template(
                 "team/edit.html",
@@ -150,6 +150,7 @@ class Team(MethodView):
             team.foundation_date = team_info["foundation_date"]
         if "logo" in team_info:
             team.logo = team_info["logo"]
+        team.owner_id = current_user.id
         try:
             db.session.add(team)
             db.session.commit()

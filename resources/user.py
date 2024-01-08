@@ -57,7 +57,13 @@ class Teams(MethodView):
     def get(self, user_id):
         user = UserModel.query.get_or_404(user_id)
         app.logger.debug(f"User: {user}")
-        return "Under Construction"
+        teams = TeamModel.query.filter_by(owner_id=user_id).all()
+        return render_template(
+            "team/all.html",
+            title=f"{user.name}'s Teams",
+            teams=teams,
+            user=user,
+        )
 
     @get.support("application/json")
     @blp.response(200, UserSchema)

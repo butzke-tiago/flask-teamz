@@ -1,19 +1,17 @@
 {% extends "base.html" %}
 
 {% block bar %}
-<table>
-    <tr>
-        <td></td>
-        <td><a href="{{ url_for('home') }}">Home</a></td>
-        {% if current_user.is_authenticated %}
-        <td><a href="{{ url_for('team.CreateTeam') }}">Create a Team</a></td>
-        <td><a href="{{ url_for('user.Logout') }}">Logout</a></td>
-        {% else %}
-        <td><a href="{{ url_for('user.Signup') }}">Signup</a></td>
-        <td><a href="{{ url_for('user.Login') }}">Login</a></td>
-        {% endif %}
-    </tr>
-</table>
+<tr>
+    <td></td>
+    <td><a href="{{ url_for('home') }}">Home</a></td>
+    {% if current_user.is_authenticated %}
+    <td><a href="{{ url_for('team.CreateTeam') }}">Create a Team</a></td>
+    <td><a href="{{ url_for('user.Logout') }}">Logout</a></td>
+    {% else %}
+    <td><a href="{{ url_for('user.Signup') }}">Signup</a></td>
+    <td><a href="{{ url_for('user.Login') }}">Login</a></td>
+    {% endif %}
+</tr>
 {% endblock %}
 
 {% block content %}
@@ -46,7 +44,8 @@
             {% if current_user.is_authenticated %}
             <td>
                 {% if current_user.id == team.owner_id %}
-                <button onclick="sendDeleteRequest('{{ url_for('team.Team', team_id=team.id) }}')">Delete</button>
+                <button
+                    onclick="sendDeleteRequest('{{ url_for('team.Team', team_id=team.id) }}', '{{ request.path }}')">Delete</button>
                 {% endif %}
             </td>
             {% endif %}
@@ -55,34 +54,4 @@
 
     </tbody>
 </table>
-{% endblock %}
-
-{% block scripts %}
-<script>
-    function sendDeleteRequest(url) {
-        fetch(`${url}`, {
-            method: 'DELETE',
-            headers: {
-                'Accept': '*/*'
-            },
-        })
-            .then(response => {
-                if (response.ok) {
-                    // Handle successful response
-                    console.log('Delete request successful');
-                } else {
-                    // Handle error response
-                    console.error('Delete request failed');
-                    alert("Failed to delete team.")
-                }
-            })
-            .catch(error => {
-                // Handle network error
-                console.error('An error occurred:', error);
-            })
-            .finally(() => {
-                location.href = "{{ url_for('team.AllTeams') }}";
-            });
-    }
-</script>
 {% endblock %}

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block bar %}
-<table id="bar">
+<tr>
     <td></td>
     <td><a href="{{ url_for('home') }}">Home</a></td>
     {% if current_user.is_authenticated %}
@@ -11,15 +11,15 @@
     <td><a href="{{ url_for('user.Signup') }}">Signup</a></td>
     <td><a href="{{ url_for('user.Login') }}">Login</a></td>
     {% endif %}
-</table>
+</tr>
 {% endblock %}
 
 {% block content %}
 <hr>
-<table>
+<table class="table-striped">
     <td>
         <form name="team" method="post" action="{{ url_for('team.AllTeams') }}" onsubmit="return validateForm()"
-            enctype="multipart/form-data">
+            enctype="multipart/form-data" style="width: 100%;">
             <label for="name">Name:</label><br>
             <input type="text" id="name" name="name" {% if team.name %} value="{{ team.name }}" {% endif %}
                 minlength="2" required><br>
