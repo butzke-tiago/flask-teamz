@@ -1,17 +1,23 @@
 {% extends "base.html" %}
 
-{% block content %}
+{% block bar %}
 <table>
     <tr>
+        <td></td>
         <td><a href="{{ url_for('home') }}">Home</a></td>
-        <td><a href="{{ url_for('team.CreateTeam') }}">Create a Team</a></td><br>
-        {% if current_user.is_authenticated %}<td><a href="{{ url_for('user.Logout') }}">Logout</a></td>{% endif %}
-
+        {% if current_user.is_authenticated %}
+        <td><a href="{{ url_for('team.CreateTeam') }}">Create a Team</a></td>
+        <td><a href="{{ url_for('user.Logout') }}">Logout</a></td>
+        {% else %}
+        <td><a href="{{ url_for('user.Signup') }}">Signup</a></td>
+        <td><a href="{{ url_for('user.Login') }}">Login</a></td>
+        {% endif %}
     </tr>
 </table>
-<hr>
-{% if message %}<b>{{ message }}</b><br> {% endif %}
+{% endblock %}
 
+{% block content %}
+<hr>
 <table id="data" class="table table-striped">
     <thead>
         <tr>
@@ -20,7 +26,10 @@
             <th>Foundation Date</th>
             <th>Stadium</th>
             <th>Location</th>
+            <th>Owner</th>
+            {% if current_user.is_authenticated%}
             <th></th>
+            {% endif %}
         </tr>
     </thead>
     <tbody>
@@ -32,9 +41,14 @@
             <td>{{ team.foundation_date or ''}}</td>
             <td>{{ team.stadium or ''}}</td>
             <td>{{ team.city or ''}}{% if team.state and team.city %}, {% endif %}{{ team.state or ''}}</td>
+            <td><a href="{{url_for('user.Teams', user_id=team.owner_id)}}">{{ team.owner.name }}</td>
+            {% if current_user.is_authenticated %}
             <td>
+                {% if current_user.id == team.owner_id %}
                 <button onclick="sendDeleteRequest('{{ url_for('team.Team', team_id=team.id) }}')">Delete</button>
+                {% endif %}
             </td>
+            {% endif %}
         </tr>
         {% endfor %}
 

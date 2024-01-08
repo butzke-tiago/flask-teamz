@@ -1,11 +1,14 @@
 {% extends "base.html" %}
 
-{% block content %}
+{% block bar %}
 <table>
     <td><a href="{{ url_for('home') }}">Home</a></td>
-    <td><a href="{{ url_for('player.CreatePlayer') }}">Create a Player</a></td><br>
+    <td><a href="{{ url_for('player.CreatePlayer') }}">Create a Player</a></td>
     {% if current_user.is_authenticated %}<td><a href="{{ url_for('user.Logout') }}">Logout</a></td>{% endif %}
 </table>
+{% endblock %}
+
+{% block content %}
 <hr>
 {% if message %}<b>{{ message }}</b><br> {% endif %}
 
@@ -17,6 +20,7 @@
             <th>Birth Date</th>
             <th>Position</th>
             <th>Team</th>
+            <th>Owner</th>
             <th></th>
         </tr>
     </thead>
@@ -30,10 +34,16 @@
             <td>{{ player.position if player.position else ''}}</td>
             <td>{% if player.team_id %}<a href="{{ url_for('team.Team', team_id=player.team_id) }}">{{ player.team.name
                     }}</a>{% endif %}</td>
-            <td style="text-align: right;">
+            <td>{% if player.team %}<a href="{{url_for('user.Teams', user_id=player.team.owner_id)}}">{{
+                    player.team.owner.name }}{% endif %}</td>
+            {% if current_user.is_authenticated %}
+            <td>
+                {% if current_user.id == player.team.owner_id %}
                 <button
                     onclick="sendDeleteRequest('{{ url_for('player.Player', player_id=player.id) }}')">Delete</button>
+                {% endif %}
             </td>
+            {% endif %}
         </tr>
         {% endfor %}
     </tbody>

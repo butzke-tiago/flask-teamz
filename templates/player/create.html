@@ -1,12 +1,21 @@
 {% extends "base.html" %}
 
-{% block content %}
-<table>
-    <td><a href="javascript:history.back()">Back</a></td>
-    <td><a href="{{ url_for('player.AllPlayers') }}">Players</a></td><br>
+{% block bar %}
+<table id="bar">
+    <td></td>
+    <td><a href="{{ url_for('home') }}">Home</a></td>
+    {% if current_user.is_authenticated %}
+    <td><a href="{{ url_for('user.User') }}">Your Teams</a></td>
+    <td><a href="{{ url_for('user.Logout') }}">Logout</a></td>
+    {% else %}
+    <td><a href="{{ url_for('user.Signup') }}">Signup</a></td>
+    <td><a href="{{ url_for('user.Login') }}">Login</a></td>
+    {% endif %}
 </table>
+{% endblock %}
+
+{% block content %}
 <hr>
-{% if message %}<b>{{ message }}</b><br> {% endif %}
 <table>
     <td>
         <form name="player" method="post" action="{{ url_for('player.AllPlayers') }}" onsubmit="return validateForm()"

@@ -1,9 +1,22 @@
 {% extends "base.html" %}
 
-{% block content %}
+{% block bar %}
 <table>
-    <td><a href="javascript:history.back()">Back</a></td>
+    <tr>
+        <td></td>
+        <td><a href="{{ url_for('home') }}">Home</a></td>
+        {% if current_user.is_authenticated %}
+        <td><a href="{{ url_for('user.User') }}">Your Teams</a></td>
+        <td><a href="{{ url_for('user.Logout') }}">Logout</a></td>
+        {% else %}
+        <td><a href="{{ url_for('user.Signup') }}">Signup</a></td>
+        <td><a href="{{ url_for('user.Login') }}">Login</a></td>
+        {% endif %}
+    </tr>
 </table>
+{% endblock %}
+
+{% block content %}
 <hr>
 <table>
     <td>
@@ -13,7 +26,7 @@
     </td>
     <td width="20"></td>
     <td>
-        <form id="team" method="post" onsubmit="return sendUpdateRequest()">
+        <form id="team" onsubmit="return sendUpdateRequest()">
             <label for="name">Name:</label><br>
             <input type="text" id="name" name="name" value="{{ team.name }}" minlength="2" required><br>
             <label for="stadium">Stadium:</label><br>
@@ -34,6 +47,7 @@
             <input type="text" id="logo" name="logo" value="{{ team.logo or ''}}" oninput="getImg()"><br>
             <br>
             <input type="submit" value="Update">
+            <input type="button" value="Cancel" onclick="cancelUpdate()">
         </form>
     </td>
     <td width="20"></td>
@@ -153,6 +167,9 @@
                 location.href = "{{ url_for('team.Team',team_id=team.id) }}";
             });
         return false;
+    }
+    function cancelUpdate() {
+        location.href = "{{ url_for('team.Team',team_id=team.id) }}";
     }
     function getImg() {
         var url = document.getElementById('logo').value;

@@ -1,9 +1,8 @@
 from flask import current_app as app, render_template
 from flask_accept import accept_fallback
-from flask_login import login_required
+from flask_login import login_required, current_user
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
-import logging
 
 from .db import db
 from models import PlayerModel, PlayersModel, TeamsModel
@@ -92,9 +91,13 @@ class Player(MethodView):
     @blp.arguments(EditSchema, location="query", as_kwargs=True)
     def get(self, player_id, **kwargs):
         player = PlayerModel.query.get_or_404(player_id)
-        teams = TeamsModel.query.all()
         app.logger.debug(f"Player: {player}")
-        if "edit" in kwargs:
+        if (
+            "edit" in kwargs
+            and current_user.is_authenticated
+            and current_user.id == player.team.owner_id
+        ):
+            teams = TeamsModel.query.filter_by(owner_id=current_user.id).all()
             return render_template(
                 "player/edit.html",
                 title=f"Player: {player.name}",
@@ -103,6 +106,7 @@ class Player(MethodView):
                 player=player,
             )
         else:
+            teams = TeamsModel.query.all()
             return render_template(
                 "player/view.html",
                 title=f"Player: {player.name}",
@@ -164,7 +168,9 @@ class CreatePlayer(MethodView):
         if "team_id" in kwargs:
             teams = [TeamsModel.query.get(kwargs["team_id"])]
         else:
-            teams = [NO_TEAM] + TeamsModel.query.all()
+            teams = [NO_TEAM] + TeamsModel.query.filter_by(
+                owner_id=current_user.id
+            ).all()
         return render_template(
             "player/create.html",
             title="New Player",

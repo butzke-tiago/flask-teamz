@@ -6,7 +6,7 @@ from flask_smorest import Blueprint, abort
 from models import TeamModel, TeamsModel, UserModel
 from .db import db
 from .schemas import TeamSchema, UserSchema, UserBaseSchema, NextSchema
-from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+from sqlalchemy.exc import SQLAlchemyError
 from passlib.hash import pbkdf2_sha256
 from .team import blp as TeamBlueprint
 from .player import blp as PlayerBlueprint
@@ -132,7 +132,7 @@ class Login(MethodView):
         app.logger.debug(f"{kwargs}")
         user = UserModel.query.filter_by(name=user_input["username"]).first()
         if user and pbkdf2_sha256.verify(user_input["password"], user.password):
-            login_user(user, remember=True)
+            login_user(user, remember="remember" in user_input)
             if "next" in kwargs:
                 return redirect(kwargs["next"])
             return redirect(url_for("user.User"))

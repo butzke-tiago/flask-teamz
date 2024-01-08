@@ -11,14 +11,43 @@
     <div class="container">
         <h1>{{ title }}</h1>
         <hr>
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-        <div class="notification is-danger">
-            {{ messages[0] }}
-        </div>
-        {% endif %}
-        {% endwith %}
-        {% block content %}{% endblock %}
+        <table id="body">
+            <tr>
+                <td></td>
+                <td>
+                    {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                    <div class="notification is-danger">
+                        {{ messages[0] }}
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td>
+                    {% block bar %}{% endblock %}
+                </td>
+            </tr>
+            <tr>
+                <td style="vertical-align: top;">
+                    {% block menu %}
+                    <table name="menu">
+                        <tr>
+                            <td><a href="{{ url_for('team.AllTeams') }}">Teams</a></td>
+                        </tr>
+                        <tr>
+                            <td><a href="{{ url_for('player.AllPlayers') }}">Players</a></td>
+                        </tr>
+                    </table>
+                    {% endblock %}
+                </td>
+                <td>
+                    {% block content %}{% endblock %}
+                </td>
+            </tr>
+        </table>
         <hr>
     </div>
     {% block scripts %}{% endblock %}

@@ -96,6 +96,7 @@ class UserBaseSchema(Schema):
     username = fields.Str(required=True)
     email = fields.Email(required=True, dump_only=True)
     password = fields.Str(required=True, load_only=True)
+    remember = fields.Bool(load_only=True)
 
 
 class UserCreateSchema(UserBaseSchema):

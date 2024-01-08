@@ -53,7 +53,6 @@ class AllTeams(MethodView):
                     "team/create.html",
                     title="Create your Team",
                     states=BRAZILIAN_STATES,
-                    message=f"Team already exists!",
                     team=team,
                 ),
                 201,
@@ -95,7 +94,11 @@ class Team(MethodView):
     def get(self, team_id, **kwargs):
         team = TeamModel.query.get_or_404(team_id)
         app.logger.debug(f"Team: {team}")
-        if "edit" in kwargs:
+        if (
+            "edit" in kwargs
+            and current_user.is_authenticated
+            and current_user.id == team.owner_id
+        ):
             return render_template(
                 "team/edit.html",
                 title=f"Team: {team.name}",

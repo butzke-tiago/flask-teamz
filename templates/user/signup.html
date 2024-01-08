@@ -1,13 +1,19 @@
 {% extends "base.html" %}
 
 
-{% block content %}
+{% block bar %}
 <table>
-    <td><a href="javascript:history.back()">Back</a></td>
+    <tr>
+        <td><a href="{{ url_for('home') }}">Home</a></td>
+        <td><a href="{{ url_for('user.Login') }}">Login</a></td>
+    </tr>
 </table>
+{% endblock %}
+
+{% block content %}
 <hr>
 <form method="post" action="{{ url_for('user.Signup') }}" enctype="multipart/form-data">
-    <label for="username">Name:</label><br>
+    <label for="username">Username:</label><br>
     <input type="text" id="username" name="username" minlength="2" required><br>
     <label for="email">E-mail:</label><br>
     <input type="email" id="email" name="email" minlength="2" required><br>

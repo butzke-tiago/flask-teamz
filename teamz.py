@@ -1,10 +1,10 @@
-from flask import Flask, render_template
-from flask_login import LoginManager
+from flask import Flask, render_template, redirect, url_for
+from flask_login import LoginManager, current_user
 from flask_smorest import Api
 from resources.team import blp as TeamBlueprint
 from resources.player import blp as PlayerBlueprint
 from resources.user import blp as UserBlueprint
-from flask_migrate import Migrate, upgrade
+from flask_migrate import Migrate
 from resources.db import db
 from models import UserModel
 
@@ -27,7 +27,10 @@ def create_app():
 
     @app.get("/")
     def home():
-        return render_template("home.html", title="TeamZ")
+        if current_user.is_authenticated:
+            return redirect(url_for("user.User"))
+        else:
+            return render_template("home.html", title="TeamZ")
 
     api = Api(app)
 

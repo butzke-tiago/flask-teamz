@@ -1,11 +1,14 @@
 {% extends "base.html" %}
 
-{% block content %}
+{% block bar %}
 <table>
-    <td><a href="javascript:history.back()">Back</a></td>
-    <td><a href="{{ url_for('player.AllPlayers') }}">Players</a></td><br>
+    <td><a href="{{ url_for('home') }}">Home</a></td>
+    <td><a href="{{ url_for('player.AllPlayers') }}">Players</a></td>
     {% if current_user.is_authenticated %}<td><a href="{{ url_for('user.Logout') }}">Logout</a></td>{% endif %}
 </table>
+{% endblock %}
+
+{% block content %}
 <hr>
 <table>
     <td>
@@ -31,8 +34,8 @@
                 {% endfor %}
             </select><br>
             <label for="birth_date">Birth Date:</label><br>
-            <input type="date" id="birth_date" name="birth_date" value={{ player.birth_date }} min="1900-01-01"
-                max="2023-12-31" disabled /><br>
+            <input type="date" id="birth_date" name="birth_date" {% if player.birth_date %}
+                value="{{ player.birth_date }}" {% endif %} min="1900-01-01" max="2023-12-31" disabled /><br>
         </form>
         <br>
         {% if current_user.id == player.team.owner_id %}

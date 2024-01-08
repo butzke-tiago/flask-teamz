@@ -1,13 +1,22 @@
 {% extends "base.html" %}
 
-{% block content %}
-<table>
-    <td><a href="javascript:history.back()">Back</a></td>
-    <td><a href="{{ url_for('team.AllTeams') }}">Teams</a></td><br>
-    {% if current_user.is_authenticated %}<td><a href="{{ url_for('user.Logout') }}">Logout</a></td>{% endif %}
+{% block bar %}
+<table id="bar">
+    <td></td>
+    <td><a href="{{ url_for('home') }}">Home</a></td>
+    {% if current_user.is_authenticated %}
+    <td><a href="{{ url_for('user.User') }}">Your Teams</a></td>
+    <td><a href="{{ url_for('user.Logout') }}">Logout</a></td>
+    {% else %}
+    <td><a href="{{ url_for('user.Signup') }}">Signup</a></td>
+    <td><a href="{{ url_for('user.Login') }}">Login</a></td>
+    {% endif %}
 </table>
+{% endblock %}
+
+{% block content %}
 <hr>
-<table>
+<table id="team" class="table table-striped">
     <td>
         <img height="312" src="{{ team.logo or url_for('static', filename='team.png') }}">
     </td>
@@ -28,8 +37,8 @@
                 {% endfor %}
             </select><br>
             <label for="foundation_date">Foundation Date:</label><br>
-            <input type="date" id="foundation_date" name="foundation_date" value={{ team.foundation_date }}
-                min="1800-01-01" max="2023-12-31" disabled /><br>
+            <input type="date" id="foundation_date" name="foundation_date" {% if team.foundation_date %}
+                value="{{ team.foundation_date }}" {% endif %} min="1800-01-01" max="2023-12-31" disabled /><br>
         </form>
         <br>
         {% if current_user.id == team.owner_id %}
@@ -51,21 +60,15 @@
                     <th>Name</th>
                     <th>Birth Date</th>
                     <th>Position</th>
-                    <th></th>
                 </tr>
             </thead>
             <tbody>
                 {% for player in team.players %}
                 <tr>
-                    <td><img height="32" src="{{ player.portrait or url_for('static', filename='player.png') }}">
-                    </td>
+                    <td><img height="32" src="{{ player.portrait or url_for('static', filename='player.png') }}"></td>
                     <td><a href="{{ url_for('player.Player', player_id=player.id) }}">{{ player.name }}</a></td>
                     <td>{{ player.birth_date }}</td>
                     <td>{{ player.position }}</td>
-                    <td style="text-align: right;">
-                        <button onclick="sendDeleteRequest('{{ url_for('player.Player', player_id=player.id) }}')"
-                            disabled>Delete</button>
-                    </td>
                 </tr>
                 {% endfor %}
 
