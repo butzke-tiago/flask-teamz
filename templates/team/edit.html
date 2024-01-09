@@ -65,8 +65,8 @@
                 {% for player in team.players %}
                 <tr>
                     <td><a href="{{ url_for('player.Player', player_id=player.id) }}">{{ player.name }}</a></td>
-                    <td>{{ player.birth_date }}</td>
-                    <td>{{ player.position }}</td>
+                    <td>{{ player.birth_date or ''}}</td>
+                    <td>{{ player.position or ''}}</td>
                     <td>
                         <button
                             onclick="sendDeleteRequest('{{ url_for('player.Player', player_id=player.id) }}', '{{ url_for('team.Team',team_id=team.id, edit=1) }}')">Delete</button>
@@ -124,13 +124,11 @@
                 } else {
                     // Handle error response
                     console.error('Put request failed');
-                    alert("Failed to update!")
                 }
             })
             .catch(error => {
                 // Handle network error
                 console.error('An error occurred:', error);
-                alert("Failed to update!")
             })
             .finally(() => {
                 location.href = "{{ url_for('team.Team',team_id=team.id) }}";

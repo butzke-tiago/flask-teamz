@@ -34,7 +34,18 @@
                                 padding-right: 5px;
                             }
                         </style>
-                        {% block bar %}{% endblock %}
+                        {% block bar %}
+                        <tr>
+                            <td></td>
+                            <td><a href="{{ url_for('home') }}">Home</a></td>
+                            {% if current_user.is_authenticated %}
+                            <td><a href="{{ url_for('user.Logout') }}">Logout</a></td>
+                            {% else %}
+                            <td><a href="{{ url_for('user.Signup') }}">Signup</a></td>
+                            <td><a href="{{ url_for('user.Login') }}">Login</a></td>
+                            {% endif %}
+                        </tr>
+                        {% endblock %}
                     </table>
                 </td>
             </tr>
@@ -52,7 +63,7 @@
                     {% endblock %}
                 </td>
                 <td>
-                    {% block content %}{% endblock %}
+                    {% block content %}{{ content }}{% endblock %}
                 </td>
             </tr>
         </table>
@@ -74,7 +85,6 @@
                     } else {
                         // Handle error response
                         console.error('Delete request failed');
-                        flash("Failed to delete player.")
                     }
                 })
                 .catch(error => {

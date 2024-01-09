@@ -8,7 +8,7 @@ class UsersModel(UserMixin, db.Model):
     __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, unique=True, nullable=False)
+    username = db.Column(db.String, unique=True, nullable=False)
     email = db.Column(db.String, unique=True, nullable=False)
     password = db.Column(db.String, nullable=False)
 
@@ -16,7 +16,7 @@ class UsersModel(UserMixin, db.Model):
         return json.dumps(
             {
                 "id": self.id,
-                "username": self.name,
+                "username": self.username,
                 "email": self.email,
                 "password": self.password,
             },

@@ -42,7 +42,7 @@
                     player.team.name
                     }}</a>{% endif %}</td>
             <td>{% if player.team %}<a href="{{url_for('user.Teams', user_id=player.team.owner_id)}}">{{
-                    player.team.owner.name }}{% endif %}</td>
+                    player.team.owner.username }}{% endif %}</td>
             {% if current_user.is_authenticated %}
             <td>
                 {% if current_user.id == player.team.owner_id %}

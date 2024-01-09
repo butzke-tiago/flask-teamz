@@ -1,4 +1,6 @@
+from datetime import timedelta
 from flask import Flask, render_template, redirect, url_for
+from flask_jwt_extended import JWTManager
 from flask_login import LoginManager, current_user
 from flask_smorest import Api
 from resources.team import blp as TeamBlueprint
@@ -6,7 +8,7 @@ from resources.player import blp as PlayerBlueprint
 from resources.user import blp as UserBlueprint
 from flask_migrate import Migrate
 from resources.db import db
-from models import UserModel
+from models import UserModel, BlocklistModel
 
 
 def create_app():
@@ -22,8 +24,12 @@ def create_app():
     ] = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///data.db"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    app.config["JWT_SECRET_KEY"] = "1234"
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
+
     db.init_app(app)
     migrate = Migrate(app, db, render_as_batch=True)
+    jwt_manager = JWTManager(app)
 
     @app.get("/")
     def home():
@@ -47,5 +53,16 @@ def create_app():
     def load_user(user_id):
         # since the user_id is just the primary key of our user table, use it in the query for the user
         return UserModel.query.get(int(user_id))
+
+    @jwt_manager.token_in_blocklist_loader
+    def check_if_token_revoked(jwt_header, jwt_payload: dict) -> bool:
+        jti = jwt_payload["jti"]
+        token = BlocklistModel.query.filter_by(jti=jti).scalar()
+        return token is not None
+
+    @jwt_manager.user_lookup_loader
+    def user_lookup_callback(_jwt_header, jwt_data):
+        identity = jwt_data["sub"]
+        return UserModel.query.get(int(identity))
 
     return app

@@ -39,7 +39,8 @@
             <td>{{ team.foundation_date or ''}}</td>
             <td>{{ team.stadium or ''}}</td>
             <td>{{ team.city or ''}}{% if team.state and team.city %}, {% endif %}{{ team.state or ''}}</td>
-            <td>{% if team.owner_id %}<a href="{{url_for('user.Teams', user_id=team.owner_id)}}">{{ team.owner.name }}
+            <td>{% if team.owner_id %}<a href="{{url_for('user.Teams', user_id=team.owner_id)}}">{{ team.owner.username
+                    }}
                     {% endif %}</td>
             {% if current_user.is_authenticated %}
             <td>

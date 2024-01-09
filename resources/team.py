@@ -1,5 +1,6 @@
 from flask import current_app as app, render_template, flash, redirect, url_for
-from flask_accept import accept_fallback
+from flask_accept import accept_fallback, accept
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask_login import login_required, current_user
 from flask_smorest import Blueprint, abort
 from flask.views import MethodView
@@ -28,6 +29,7 @@ class AllTeams(MethodView):
         return render_template("team/all.html", teams=teams, title="Teams")
 
     @get.support("application/json")
+    @jwt_required()
     @blp.response(200, TeamSchema(many=True))
     def get_json(self):
         app.logger.info("Getting all the teams...")
@@ -55,7 +57,7 @@ class AllTeams(MethodView):
                     states=BRAZILIAN_STATES,
                     team=team,
                 ),
-                201,
+                409,
             )
         except SQLAlchemyError as e:
             app.logger.error(e)
@@ -73,13 +75,17 @@ class AllTeams(MethodView):
         return redirect(url_for("user.User"))
 
     @post.support("application/json")
+    @jwt_required()
     @blp.arguments(TeamSchema)
     @blp.response(201, TeamSchema)
     def post_json(self, team_info):
-        team = TeamsModel(**team_info)
+        team = TeamsModel(owner_id=get_jwt_identity(), **team_info)
         try:
             db.session.add(team)
             db.session.commit()
+        except IntegrityError as e:
+            app.logger.error(e)
+            abort(409, message=f"Team already exists!")
         except SQLAlchemyError as e:
             app.logger.error(e)
             abort(500, message=f"Error: {e}")
@@ -92,7 +98,16 @@ class Team(MethodView):
     @accept_fallback
     @blp.arguments(EditSchema, location="query", as_kwargs=True)
     def get(self, team_id, **kwargs):
-        team = TeamModel.query.get_or_404(team_id)
+        team = TeamModel.query.get(team_id)
+        if not team:
+            return (
+                render_template(
+                    "base.html",
+                    title="Team not found!",
+                    content="This team does not exist!",
+                ),
+                404,
+            )
         app.logger.debug(f"Team: {team}")
         if (
             "edit" in kwargs
@@ -120,24 +135,48 @@ class Team(MethodView):
         team = TeamModel.query.get_or_404(team_id)
         return team
 
+    @accept_fallback
     @login_required
     def delete(self, team_id):
         app.logger.info(f"Deleting team {team_id}...")
+        team = TeamModel.query.get(team_id)
+        if not team:
+            flash("Failed to delete team!")
+            abort(404)
+        db.session.delete(team)
+        db.session.commit()
+        message = f"Team {team.name!r} deleted!"
+        app.logger.debug(message)
+        flash(message)
+        return ""
+
+    @delete.support("application/json")
+    @jwt_required()
+    def delete_json(self, team_id):
+        app.logger.info(f"Deleting team {team_id}...")
         team = TeamModel.query.get_or_404(team_id)
+        if team.owner_id and team.owner_id != get_jwt_identity():
+            abort(
+                403,
+                message="The team must be owned by you or have no owner to be deleted.",
+            )
         db.session.delete(team)
         db.session.commit()
         message = f"Deleted team: {team_id!r}"
         app.logger.debug(message)
-        flash(f"Team {team.name!r} deleted!")
         return {"message": message}
 
+    @accept_fallback
+    @login_required
     @blp.arguments(TeamUpdateSchema)
     @blp.response(200, schema=TeamSchema)
-    @login_required
     def put(self, team_info, team_id):
         app.logger.info(f"Updating team {team_id!r}...")
         app.logger.debug(f"Update value: {team_info}")
-        team = TeamsModel.query.get_or_404(team_id)
+        team = TeamsModel.query.get(team_id)
+        if not team:
+            flash("Failed to update team!")
+            abort(404)
         if "name" in team_info:
             team.name = team_info["name"]
         if "stadium" in team_info:
@@ -161,12 +200,48 @@ class Team(MethodView):
         app.logger.debug(f"Team updated: {team}")
         return team
 
+    @put.support("application/json")
+    @jwt_required()
+    @blp.arguments(TeamUpdateSchema)
+    @blp.response(200, schema=TeamSchema)
+    def put_json(self, team_info, team_id):
+        app.logger.info(f"Updating team {team_id!r}...")
+        app.logger.debug(f"Update value: {team_info}")
+        team = TeamsModel.query.get_or_404(team_id)
+        if team.owner_id and team.owner_id != get_jwt_identity():
+            abort(
+                403,
+                message="The team must be owned by you or have no owner to be edited.",
+            )
+        if "name" in team_info:
+            team.name = team_info["name"]
+        if "stadium" in team_info:
+            team.stadium = team_info["stadium"]
+        if "city" in team_info:
+            team.city = team_info["city"]
+        if "state" in team_info:
+            team.state = team_info["state"]
+        if "foundation_date" in team_info:
+            team.foundation_date = team_info["foundation_date"]
+        if "logo" in team_info:
+            team.logo = team_info["logo"]
+        team.owner_id = get_jwt_identity()
+        try:
+            db.session.add(team)
+            db.session.commit()
+        except IntegrityError as e:
+            abort(400, message=f"Error: {e}")
+        except SQLAlchemyError as e:
+            abort(500, message=f"Error: {e}")
+        app.logger.debug(f"Team updated: {team}")
+        return team
+
 
 @blp.route("/team/<int:team_id>/players")
 class TeamPlayers(MethodView):
+    @accept("application/json")
     @blp.response(200, PlayerSchema(many=True))
     def get(self, team_id):
-        query = PlayersModel.query.filter_by(team_id=team_id)
         team = TeamPlayersModel.query.get_or_404(team_id)
         team_players = team.players.all()
         app.logger.debug(f"Players: {[player.__str__() for player in team_players]}")

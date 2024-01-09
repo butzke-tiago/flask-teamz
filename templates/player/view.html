@@ -25,7 +25,9 @@
                 </option>
                 {% endfor %}
             </select><br>
-            <label for="team_id">Team:</label><br>
+            <label for="team_id">{% if player.team %}<a
+                    href="{{ url_for('team.Team', team_id=player.team_id) }}">Team:</a>{% else %}Team:{% endif
+                %}</label><br>
             <select name="team_id" id="team_id" disabled>
                 {% for team in teams %}
                 <option value="{{ team.id }}" {% if player.team_id==team.id %} selected {% endif %}>{{ team.name }}
